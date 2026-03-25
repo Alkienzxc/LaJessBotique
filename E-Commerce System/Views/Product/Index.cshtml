@@ -1,0 +1,316 @@
+﻿@model List<Product>
+@{
+    ViewData["Title"] = "Shop";
+    var categories   = ViewBag.Categories  as List<Category> ?? new();
+    var search       = ViewBag.Search      as string ?? "";
+    var categoryId   = ViewBag.CategoryId  as int?;
+    var sort         = ViewBag.Sort        as string ?? "";
+    var resultCount  = (int)(ViewBag.ResultCount ?? 0);
+    var lowestPrice  = (decimal)(ViewBag.LowestPrice  ?? 0);
+    var highestPrice = (decimal)(ViewBag.HighestPrice ?? 9999);
+}
+
+@section Styles {
+<style>
+.shop-hero{background:var(--cream-dark);padding:3.5rem 0 2.5rem;border-bottom:1px solid rgba(201,116,127,.1);}
+.shop-hero-title{font-family:var(--font-display);font-size:clamp(2rem,4vw,3rem);font-weight:400;color:var(--charcoal);}
+.shop-hero-title em{font-style:italic;color:var(--rose);}
+.breadcrumb{font-size:.72rem;letter-spacing:.08em;color:var(--charcoal-soft);}
+.breadcrumb a{color:var(--charcoal-soft);text-decoration:none;}
+.breadcrumb a:hover{color:var(--rose);}
+.breadcrumb-sep{margin:0 .5rem;color:var(--rose-light);}
+
+.filter-sidebar{background:white;border-radius:var(--radius-lg);padding:1.8rem;border:1px solid rgba(201,116,127,.1);position:sticky;top:90px;}
+.filter-heading{font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;color:var(--charcoal-soft);font-weight:500;margin-bottom:1rem;padding-bottom:.6rem;border-bottom:1px solid rgba(201,116,127,.12);}
+.filter-divider{border-color:rgba(201,116,127,.1);margin:1.2rem 0;}
+.cat-filter-btn{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;padding:.55rem .8rem;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:.85rem;color:var(--charcoal-mid);cursor:pointer;transition:var(--transition);text-align:left;}
+.cat-filter-btn:hover,.cat-filter-btn.active{background:var(--rose-pale);color:var(--rose-deep);}
+.cat-filter-btn .count{font-size:.68rem;background:var(--rose-light);color:var(--rose-deep);padding:2px 7px;border-radius:10px;}
+.cat-filter-btn.active .count{background:var(--rose);color:white;}
+.price-range-wrap{padding:.3rem 0;}
+.price-range-wrap input[type=range]{width:100%;accent-color:var(--rose);}
+.price-labels{display:flex;justify-content:space-between;font-size:.75rem;color:var(--charcoal-soft);margin-top:.4rem;}
+
+.shop-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.8rem;flex-wrap:wrap;gap:.8rem;}
+.result-count{font-size:.82rem;color:var(--charcoal-soft);}
+.result-count strong{color:var(--charcoal);}
+.sort-select{padding:.45rem 1rem;border:var(--border-rose);border-radius:50px;font-family:var(--font-body);font-size:.78rem;color:var(--charcoal);background:white;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;padding-right:2rem;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23C9747F' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .75rem center;}
+.sort-select:focus{border-color:var(--rose);box-shadow:0 0 0 3px rgba(201,116,127,.1);}
+
+.active-filters{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.2rem;}
+.filter-pill{display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .8rem;background:var(--rose-pale);color:var(--rose-deep);border-radius:50px;font-size:.7rem;font-weight:500;border:1px solid var(--rose-light);}
+.filter-pill a{color:var(--rose);text-decoration:none;font-size:.8rem;line-height:1;}
+
+.empty-state{text-align:center;padding:5rem 2rem;}
+.empty-state-icon{font-size:3.5rem;color:var(--rose-light);margin-bottom:1.2rem;}
+.empty-state-title{font-family:var(--font-display);font-size:1.6rem;color:var(--charcoal);margin-bottom:.6rem;}
+.empty-state-sub{font-size:.9rem;color:var(--charcoal-soft);}
+
+.filter-toggle-btn{display:none;}
+@@media(max-width:991px){
+  .filter-sidebar{position:static;display:none;}
+  .filter-sidebar.show{display:block;}
+  .filter-toggle-btn{display:flex;}
+}
+</style>
+}
+
+<!-- Shop Hero -->
+<div class="shop-hero">
+    <div class="container">
+        <div class="breadcrumb mb-2">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>Shop</span>
+            @if (categoryId.HasValue)
+            {
+                var activeCat = categories.FirstOrDefault(c => c.Id == categoryId);
+                if (activeCat != null)
+                {
+                    <span class="breadcrumb-sep">›</span>
+                    <span style="color:var(--rose);">@activeCat.Name</span>
+                }
+            }
+        </div>
+        <h1 class="shop-hero-title">
+            @if (!string.IsNullOrEmpty(search))
+            {
+                <span>Results for <em>"@search"</em></span>
+            }
+            else if (categoryId.HasValue)
+            {
+                var cat = categories.FirstOrDefault(c => c.Id == categoryId);
+                <span>Shop <em>@(cat?.Name ?? "All")</em></span>
+            }
+            else
+            {
+                <span>Shop <em>All Styles</em></span>
+            }
+        </h1>
+    </div>
+</div>
+
+<!-- Main Shop Layout -->
+<div style="background:var(--cream);padding:2.5rem 0 5rem;">
+    <div class="container">
+
+        <!-- Mobile filter toggle -->
+        <button class="filter-toggle-btn btn-outline-rose mb-3"
+                onclick="document.getElementById('filterSidebar').classList.toggle('show')">
+            <i class="bi bi-funnel"></i> Filters
+        </button>
+
+        <div class="row g-4">
+
+            <!-- ── SIDEBAR ── -->
+            <div class="col-lg-3">
+                <div class="filter-sidebar" id="filterSidebar">
+                    <form asp-controller="Product" asp-action="Index" method="get" id="filterForm">
+
+                        <!-- Search -->
+                        <div class="filter-heading">Search</div>
+                        <div style="position:relative;margin-bottom:1rem;">
+                            <i class="bi bi-search" style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--rose);font-size:.8rem;"></i>
+                            <input type="text" name="search" value="@search"
+                                   placeholder="Search products…"
+                                   style="width:100%;padding:.5rem 1rem .5rem 2.2rem;border:var(--border-rose);border-radius:50px;font-family:var(--font-body);font-size:.8rem;outline:none;background:var(--cream);" />
+                        </div>
+
+                        <hr class="filter-divider" />
+
+                        <!-- Categories -->
+                        <div class="filter-heading">Categories</div>
+                        <div style="display:flex;flex-direction:column;gap:2px;">
+                            <button type="button" onclick="setCat('')"
+                                    class="cat-filter-btn @(categoryId == null ? "active" : "")">
+                                All Styles
+                                <span class="count">@Model.Count</span>
+                            </button>
+                            @foreach (var cat in categories)
+                            {
+                                var catCount = Model.Count(p => p.CategoryId == cat.Id);
+                                <button type="button" onclick="setCat('@cat.Id')"
+                                        class="cat-filter-btn @(categoryId == cat.Id ? "active" : "")">
+                                    @cat.Name
+                                    <span class="count">@catCount</span>
+                                </button>
+                            }
+                        </div>
+                        <input type="hidden" name="categoryId" id="categoryIdInput" value="@categoryId" />
+
+                        <hr class="filter-divider" />
+
+                        <!-- Price Range -->
+                        <div class="filter-heading">Price Range</div>
+                        <div class="price-range-wrap">
+                            <input type="range" id="minPriceSlider"
+                                   min="@lowestPrice" max="@highestPrice"
+                                   value="@(ViewBag.MinPrice ?? lowestPrice)"
+                                   step="50"
+                                   oninput="updatePriceRange()" />
+                            <input type="hidden" name="minPrice" id="minPriceInput"
+                                   value="@ViewBag.MinPrice" />
+                            <input type="hidden" name="maxPrice" id="maxPriceInput"
+                                   value="@ViewBag.MaxPrice" />
+                            <div class="price-labels">
+                                <span>₱<span id="minDisplay">@(ViewBag.MinPrice ?? lowestPrice)</span></span>
+                                <span>₱<span id="maxDisplay">@(ViewBag.MaxPrice ?? highestPrice)</span></span>
+                            </div>
+                        </div>
+
+                        <hr class="filter-divider" />
+
+                        <!-- Sort -->
+                        <div class="filter-heading">Sort By</div>
+                        <select name="sort" class="sort-select w-100"
+                                style="border-radius:var(--radius-sm);"
+                                onchange="this.form.submit()">
+                            <option value="" selected="@(sort == "")">Featured First</option>
+                            <option value="newest" selected="@(sort == "newest")">Newest</option>
+                            <option value="price_asc" selected="@(sort == "price_asc")">Price: Low to High</option>
+                            <option value="price_desc" selected="@(sort == "price_desc")">Price: High to Low</option>
+                            <option value="name_asc" selected="@(sort == "name_asc")">Name: A–Z</option>
+                        </select>
+
+                        <button type="submit" class="btn-rose w-100 mt-3"
+                                style="justify-content:center;">
+                            <i class="bi bi-funnel-fill"></i> Apply Filters
+                        </button>
+                        <a asp-controller="Product" asp-action="Index"
+                           class="btn-outline-rose w-100 mt-2"
+                           style="justify-content:center;font-size:.72rem;">
+                            Clear All
+                        </a>
+
+                    </form>
+                </div>
+            </div>
+
+            <!-- ── PRODUCTS GRID ── -->
+            <div class="col-lg-9">
+
+                <!-- Toolbar -->
+                <div class="shop-toolbar">
+                    <div class="result-count">
+                        <strong>@resultCount</strong> products found
+                        @if (!string.IsNullOrEmpty(search))
+                        { <span>for "@search"</span> }
+                    </div>
+                    <select class="sort-select"
+                            onchange="window.location='?search=@search&categoryId=@categoryId&sort='+this.value">
+                        <option value="" selected="@(sort == "")">Featured First</option>
+                        <option value="newest" selected="@(sort == "newest")">Newest</option>
+                        <option value="price_asc" selected="@(sort == "price_asc")">Price: Low to High</option>
+                        <option value="price_desc" selected="@(sort == "price_desc")">Price: High to Low</option>
+                        <option value="name_asc" selected="@(sort == "name_asc")">Name: A–Z</option>
+                    </select>
+                </div>
+
+                <!-- Active filter pills -->
+                @if (!string.IsNullOrEmpty(search) || categoryId.HasValue || ViewBag.MinPrice != null)
+                {
+                    <div class="active-filters">
+                        @if (!string.IsNullOrEmpty(search))
+                        {
+                            <span class="filter-pill">
+                                <i class="bi bi-search"></i> @search
+                                <a asp-controller="Product" asp-action="Index"
+                                   asp-route-categoryId="@categoryId">&times;</a>
+                            </span>
+                        }
+                        @if (categoryId.HasValue)
+                        {
+                            var c = categories.FirstOrDefault(x => x.Id == categoryId);
+                            <span class="filter-pill">
+                                <i class="bi bi-tag"></i> @c?.Name
+                                <a asp-controller="Product" asp-action="Index"
+                                   asp-route-search="@search">&times;</a>
+                            </span>
+                        }
+                    </div>
+                }
+
+                <!-- Grid -->
+                @if (Model.Any())
+                {
+                    <div class="row g-4">
+                        @foreach (var p in Model)
+                        {
+                            <div class="col-lg-4 col-md-6 col-sm-6">
+                                <div class="product-card">
+                                    <div class="product-card-img">
+                                        <img src="@p.ImageUrl" alt="@p.Name" loading="lazy" />
+                                        @if (p.IsNewArrival)
+                                        { <span class="product-badge badge-new">New</span> }
+                                        else if (p.IsFeatured)
+                                        { <span class="product-badge badge-featured">Featured</span> }
+                                        <div class="product-card-overlay">
+                                            <a asp-controller="Product" asp-action="Detail"
+                                               asp-route-id="@p.Id" class="overlay-btn">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                            <form asp-controller="Cart" asp-action="Add" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="productId"    value="@p.Id" />
+                                                <input type="hidden" name="quantity"     value="1" />
+                                                <input type="hidden" name="selectedSize" value="@(p.Sizes.Split(',').FirstOrDefault() ?? "")" />
+                                                <button type="submit" class="overlay-btn icon-only" title="Add to basket">
+                                                    <i class="bi bi-bag-plus"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="product-card-body">
+                                        <div class="product-cat-tag">@p.Category?.Name</div>
+                                        <div class="product-name">
+                                            <a asp-controller="Product" asp-action="Detail"
+                                               asp-route-id="@p.Id"
+                                               style="text-decoration:none;color:inherit;">@p.Name</a>
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between mt-1">
+                                            <div class="product-price">
+                                                <span class="currency">₱</span>@p.Price.ToString("N0")
+                                            </div>
+                                            @if (p.Reviews.Any())
+                                            {
+                                                <span style="font-size:.7rem;color:var(--gold);">
+                                                    <i class="bi bi-star-fill"></i>
+                                                    <span style="color:var(--charcoal-soft);">@p.AverageRating</span>
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="bi bi-bag-x"></i></div>
+                        <div class="empty-state-title">No products found</div>
+                        <p class="empty-state-sub mb-4">Try adjusting your filters or search term.</p>
+                        <a asp-controller="Product" asp-action="Index" class="btn-rose">
+                            Clear Filters
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function setCat(id) {
+    document.getElementById('categoryIdInput').value = id;
+    document.getElementById('filterForm').submit();
+}
+function updatePriceRange() {
+    const val = document.getElementById('minPriceSlider').value;
+    document.getElementById('minPriceInput').value = val;
+    document.getElementById('minDisplay').textContent = parseInt(val).toLocaleString();
+}
+</script>
+}

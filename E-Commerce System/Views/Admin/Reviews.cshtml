@@ -1,0 +1,62 @@
+@model List<Review>
+@{
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+    ViewData["Title"] = "Reviews";
+}
+
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div class="admin-card-title">All Reviews</div>
+        <span style="font-size:.78rem;color:var(--charcoal-soft);">@Model.Count total</span>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead>
+                <tr><th>Customer</th><th>Product</th><th>Rating</th><th>Comment</th><th>Date</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model)
+                {
+                    <tr>
+                        <td>
+                            <div style="font-weight:700;color:var(--charcoal);">@r.CustomerName</div>
+                            <div style="font-size:.72rem;color:var(--charcoal-soft);">@r.CustomerEmail</div>
+                        </td>
+                        <td>
+                            <span style="background:var(--rose-pale);color:var(--rose-deep);padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;">
+                                @r.Product?.Name
+                            </span>
+                        </td>
+                        <td>
+                            <div style="color:#C8A96E;font-size:.88rem;">
+                                @for (int i = 1; i <= 5; i++)
+                                { <i class="bi bi-star-fill" style="color:@(i<=r.Rating?"#C8A96E":"#e0d0d0");"></i> }
+                            </div>
+                            <div style="font-size:.7rem;color:var(--charcoal-soft);">@r.Rating / 5</div>
+                        </td>
+                        <td style="max-width:260px;">
+                            <div style="font-size:.83rem;color:var(--charcoal-mid);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">
+                                @r.Comment
+                            </div>
+                        </td>
+                        <td style="color:var(--charcoal-soft);white-space:nowrap;">@r.CreatedAt.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            <form asp-controller="Admin" asp-action="DeleteReview" method="post"
+                                  onsubmit="return confirm('Delete this review?')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@r.Id" />
+                                <button type="submit" class="btn-admin btn-admin-danger btn-admin-sm">
+                                    <i class="bi bi-trash3"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--charcoal-soft);">No reviews yet.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

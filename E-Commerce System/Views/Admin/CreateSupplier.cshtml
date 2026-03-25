@@ -1,0 +1,69 @@
+@model Supplier
+@{
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+    var isEdit = Model.Id > 0;
+    ViewData["Title"] = isEdit ? "Edit Supplier" : "Add Supplier";
+}
+
+<div style="max-width:680px;">
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <div class="admin-card-title">
+                <i class="bi bi-@(isEdit?"pencil":"plus-lg")" style="color:var(--rose);"></i>
+                @(isEdit ? "Edit Supplier" : "Add New Supplier")
+            </div>
+            <a asp-controller="Admin" asp-action="Suppliers" class="btn-admin btn-admin-outline btn-admin-sm">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
+        <div class="admin-card-body">
+            <form asp-controller="Admin" asp-action="@(isEdit?"EditSupplier":"CreateSupplier")" method="post">
+                @Html.AntiForgeryToken()
+                @if (isEdit) { <input type="hidden" asp-for="Id" /> }
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="admin-label">Company / Supplier Name *</label>
+                        <input asp-for="Name" class="admin-input" required placeholder="e.g. Manila Fashion Wholesale" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="admin-label">Contact Person *</label>
+                        <input asp-for="ContactPerson" class="admin-input" required placeholder="Full name" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="admin-label">Phone *</label>
+                        <input asp-for="Phone" class="admin-input" required placeholder="+63 912 345 6789" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="admin-label">Email *</label>
+                        <input asp-for="Email" type="email" class="admin-input" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="admin-label">Product Types</label>
+                        <input asp-for="ProductTypes" class="admin-input" placeholder="e.g. Tops, Dresses, Bags" />
+                    </div>
+                    <div class="col-12">
+                        <label class="admin-label">Business Address *</label>
+                        <input asp-for="Address" class="admin-input" required placeholder="Street, City, Province" />
+                    </div>
+                    <div class="col-12">
+                        <label class="admin-label">Notes / Remarks</label>
+                        <textarea asp-for="Notes" class="admin-input" rows="3" style="resize:vertical;"
+                                  placeholder="Lead times, MOQ, special terms…"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <div style="display:flex;align-items:center;gap:.6rem;padding:.7rem 1rem;background:#e8f5e9;border-radius:8px;border:1px solid #c8e6c9;">
+                            <input asp-for="IsActive" type="checkbox" id="isActive" style="width:16px;height:16px;accent-color:#2e7d32;" />
+                            <label for="isActive" style="font-size:.85rem;font-weight:600;color:var(--charcoal);cursor:pointer;margin:0;">Active Supplier</label>
+                        </div>
+                    </div>
+                    <div class="col-12 pt-1">
+                        <button type="submit" class="btn-admin btn-admin-rose">
+                            <i class="bi bi-check-lg"></i> @(isEdit ? "Save Changes" : "Add Supplier")
+                        </button>
+                        <a asp-controller="Admin" asp-action="Suppliers" class="btn-admin btn-admin-outline" style="margin-left:.5rem;">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

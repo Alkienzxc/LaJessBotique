@@ -1,0 +1,183 @@
+@model Order
+@{
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+    ViewData["Title"] = "Order " + Model.OrderNumber;
+    var allStatuses = Enum.GetValues<OrderStatus>();
+    var subtotal = Model.OrderItems.Sum(i => i.SubTotal);
+    var shipping = Model.TotalAmount - subtotal;
+    var pill = Model.Status switch {
+        OrderStatus.Pending    => "sp-pending",
+        OrderStatus.Confirmed  => "sp-confirmed",
+        OrderStatus.Processing => "sp-processing",
+        OrderStatus.Shipped    => "sp-shipped",
+        OrderStatus.Delivered  => "sp-delivered",
+        _ => "sp-cancelled"
+    };
+}
+
+<div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+    <a asp-controller="Admin" asp-action="Orders" class="btn-admin btn-admin-outline btn-admin-sm">
+        <i class="bi bi-arrow-left"></i> Back to Orders
+    </a>
+    <span class="status-pill @pill" style="font-size:.8rem;padding:.35rem 1rem;">
+        <i class="@Model.StatusIcon"></i> @Model.Status
+    </span>
+</div>
+
+<div class="row g-3">
+
+    <!-- Left: Customer Info + Status Buttons -->
+    <div class="col-lg-4">
+
+        <!-- Customer Info -->
+        <div class="admin-card mb-3">
+            <div class="admin-card-header">
+                <div class="admin-card-title">
+                    <i class="bi bi-person" style="color:var(--rose);"></i> Customer
+                </div>
+            </div>
+            <div class="admin-card-body" style="display:flex;flex-direction:column;gap:.75rem;">
+                <div>
+                    <div class="admin-label">Name</div>
+                    <div style="font-weight:600;color:var(--charcoal);">@Model.CustomerName</div>
+                </div>
+                <div>
+                    <div class="admin-label">Email</div>
+                    <div>@Model.CustomerEmail</div>
+                </div>
+                <div>
+                    <div class="admin-label">Phone</div>
+                    <div>@Model.CustomerPhone</div>
+                </div>
+                <div>
+                    <div class="admin-label">Ship To</div>
+                    <div style="font-size:.85rem;color:var(--charcoal-mid);">@Model.ShippingAddress</div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <div>
+                        <div class="admin-label">Notes</div>
+                        <div style="font-size:.85rem;font-style:italic;color:var(--charcoal-mid);">@Model.Notes</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Status Circle Buttons -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="admin-card-title">
+                    <i class="bi bi-arrow-repeat" style="color:var(--rose);"></i> Update Status
+                </div>
+            </div>
+            <div class="admin-card-body">
+                <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:.4rem;text-align:center;">
+                    @foreach (var s in allStatuses)
+                    {
+                        var isCurrent = Model.Status == s;
+                        var btnColor = s switch {
+                            OrderStatus.Pending    => "#6a1b9a",
+                            OrderStatus.Confirmed  => "#1565c0",
+                            OrderStatus.Processing => "#e65100",
+                            OrderStatus.Shipped    => "#00695c",
+                            OrderStatus.Delivered  => "#2e7d32",
+                            _                                            => "#c62828"
+                        };
+                        var btnBg = s switch {
+                            OrderStatus.Pending    => "#f3e5f5",
+                            OrderStatus.Confirmed  => "#e3f2fd",
+                            OrderStatus.Processing => "#fff3e0",
+                            OrderStatus.Shipped    => "#e0f7fa",
+                            OrderStatus.Delivered  => "#e8f5e9",
+                            _                                            => "#fce4e4"
+                        };
+                        var icon = s switch {
+                            OrderStatus.Pending    => "bi bi-clock-fill",
+                            OrderStatus.Confirmed  => "bi bi-check-circle-fill",
+                            OrderStatus.Processing => "bi bi-gear-fill",
+                            OrderStatus.Shipped    => "bi bi-truck",
+                            OrderStatus.Delivered  => "bi bi-bag-check-fill",
+                            _                                            => "bi bi-x-circle-fill"
+                        };
+
+                        <form asp-controller="Admin" asp-action="UpdateOrderStatus" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@Model.Id" />
+                            <input type="hidden" name="status" value="@s" />
+                            <button type="submit" title="@s"
+                                    style="width:100%;background:none;border:none;cursor:pointer;padding:.2rem 0;display:flex;flex-direction:column;align-items:center;gap:.35rem;">
+                                <div style="width:44px;height:44px;border-radius:50%;background:@btnBg;border:2.5px solid @(isCurrent?btnColor:"transparent");display:flex;align-items:center;justify-content:center;font-size:1.05rem;color:@btnColor;transition:all .2s;box-shadow:@(isCurrent?"0 0 0 3px "+btnColor+"33":"none");"
+                                     onmouseover="this.style.borderColor='@btnColor';this.style.boxShadow='0 0 0 3px @(btnColor)33'"
+                                     onmouseout="this.style.borderColor='@(isCurrent?btnColor:"transparent")';this.style.boxShadow='@(isCurrent?"0 0 0 3px "+btnColor+"33":"none")'">
+                                    <i class="@icon"></i>
+                                </div>
+                                <span style="font-size:.58rem;font-weight:@(isCurrent?"700":"500");color:@(isCurrent?btnColor:"var(--charcoal-soft)");letter-spacing:.02em;line-height:1.2;">@s</span>
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Order Items + Totals -->
+    <div class="col-lg-8">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="admin-card-title">
+                    <i class="bi bi-bag" style="color:var(--rose);"></i> @Model.OrderNumber
+                </div>
+                <div style="font-size:.8rem;color:var(--charcoal-soft);">
+                    @Model.OrderDate.ToString("MMMM dd, yyyy")
+                </div>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th colspan="2">Product</th>
+                            <th>Size</th>
+                            <th>Unit Price</th>
+                            <th>Qty</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderItems)
+                        {
+                            <tr>
+                                <td style="width:54px;">
+                                    <img src="@item.Product?.ImageUrl"
+                                         style="width:46px;height:58px;object-fit:cover;border-radius:8px;" />
+                                </td>
+                                <td>
+                                    <div style="font-weight:700;color:var(--charcoal);font-size:.88rem;">@item.Product?.Name</div>
+                                    <div style="font-size:.72rem;color:var(--charcoal-soft);">@item.Product?.Category?.Name</div>
+                                </td>
+                                <td>@(string.IsNullOrEmpty(item.SelectedSize) ? "—" : item.SelectedSize)</td>
+                                <td>₱@item.UnitPrice.ToString("N0")</td>
+                                <td style="font-weight:700;">×@item.Quantity</td>
+                                <td style="font-weight:700;color:var(--rose-deep);">₱@item.SubTotal.ToString("N0")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <!-- Totals -->
+            <div style="padding:1.2rem 1.5rem;border-top:1px solid rgba(201,116,127,.12);">
+                <div style="display:flex;justify-content:space-between;font-size:.85rem;color:var(--charcoal-mid);padding:.3rem 0;">
+                    <span>Subtotal</span><span>₱@subtotal.ToString("N0")</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:.85rem;color:var(--charcoal-mid);padding:.3rem 0;">
+                    <span>Shipping</span>
+                    <span>@(shipping <= 0 ? "FREE" : "₱" + shipping.ToString("N0"))</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-family:var(--font-display);font-size:1.2rem;font-weight:700;color:var(--charcoal);padding:.8rem 0 0;border-top:1px solid rgba(201,116,127,.12);margin-top:.4rem;">
+                    <span>Total</span>
+                    <span style="color:var(--rose-deep);">₱@Model.TotalAmount.ToString("N0")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

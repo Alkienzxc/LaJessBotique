@@ -1,0 +1,270 @@
+﻿@{
+    ViewData["Title"] = "Contact Us";
+}
+@section Styles {
+    <style>
+        .contact-hero {
+            background: var(--cream-dark);
+            padding: 4rem 0 3rem;
+            text-align: center;
+        }
+
+        .contact-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem,4vw,3.2rem);
+            font-weight: 400;
+        }
+
+            .contact-title em {
+                font-style: italic;
+                color: var(--rose);
+            }
+
+        .contact-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            border: 1px solid rgba(201,116,127,.1);
+        }
+
+        .form-label-lj {
+            font-size: .65rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--charcoal-soft);
+            font-weight: 500;
+            display: block;
+            margin-bottom: .4rem;
+        }
+
+        .form-input-lj {
+            width: 100%;
+            padding: .7rem 1rem;
+            border: var(--border-rose);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-body);
+            font-size: .88rem;
+            color: var(--charcoal);
+            outline: none;
+            transition: var(--transition);
+            background: white;
+        }
+
+            .form-input-lj:focus {
+                border-color: var(--rose);
+                box-shadow: 0 0 0 3px rgba(201,116,127,.1);
+            }
+
+        /* Info cards */
+        .info-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1.4rem;
+            background: var(--cream);
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(201,116,127,.1);
+            transition: var(--transition);
+        }
+
+            .info-card:hover {
+                border-color: var(--rose-light);
+                background: var(--rose-pale);
+            }
+
+        .info-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--rose-pale);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--rose);
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .info-label {
+            font-size: .62rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--rose);
+            font-weight: 500;
+            margin-bottom: .2rem;
+        }
+
+        .info-value {
+            font-size: .9rem;
+            color: var(--charcoal);
+            line-height: 1.6;
+        }
+
+        /* Map placeholder */
+        .map-placeholder {
+            background: var(--cream-dark);
+            border-radius: var(--radius-lg);
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(201,116,127,.1);
+            flex-direction: column;
+            gap: .8rem;
+            color: var(--charcoal-soft);
+        }
+
+            .map-placeholder i {
+                font-size: 2.5rem;
+                color: var(--rose-light);
+            }
+    </style>
+}
+
+<div class="contact-hero">
+    <div class="container">
+        <span class="section-eyebrow">We'd Love to Hear From You</span>
+        <h1 class="contact-title">Get in <em>Touch</em></h1>
+        <div class="section-divider"></div>
+        <p style="font-size:.9rem;color:var(--charcoal-soft);max-width:440px;margin:0 auto;">
+            Have a question, a special request, or just want to say hi?
+            We reply within 24 hours.
+        </p>
+    </div>
+</div>
+
+<div style="background:var(--cream);padding:4rem 0 5rem;">
+    <div class="container">
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert mb-4" style="background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:var(--radius-md);padding:1rem 1.5rem;font-size:.88rem;">
+                <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+            </div>
+        }
+        @if (TempData["ContactError"] != null)
+        {
+            <div class="alert mb-4" style="background:#fce4e4;color:#c62828;border:1px solid #f09595;border-radius:var(--radius-md);padding:1rem 1.5rem;font-size:.88rem;">
+                <i class="bi bi-exclamation-circle"></i> @TempData["ContactError"]
+            </div>
+        }
+
+        <div class="row g-5">
+            <!-- Contact Form -->
+            <div class="col-lg-7">
+                <div class="contact-card">
+                    <h3 style="font-family:var(--font-display);font-size:1.4rem;color:var(--charcoal);margin-bottom:1.5rem;">
+                        Send Us a Message
+                    </h3>
+                    <form asp-controller="Contact" asp-action="Send" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label-lj">Your Name</label>
+                                <input type="text" name="name" class="form-input-lj"
+                                       placeholder="e.g. Maria Santos" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-lj">Email Address</label>
+                                <input type="email" name="email" class="form-input-lj"
+                                       placeholder="your@email.com" required />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label-lj">Subject</label>
+                                <input type="text" name="subject" class="form-input-lj"
+                                       placeholder="e.g. Order inquiry, sizing question…" required />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label-lj">Message</label>
+                                <textarea name="message" class="form-input-lj" rows="5"
+                                          placeholder="Tell us how we can help you…"
+                                          required style="resize:vertical;"></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn-rose">
+                                    <i class="bi bi-send"></i> Send Message
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="col-lg-5">
+                <h3 style="font-family:var(--font-display);font-size:1.4rem;color:var(--charcoal);margin-bottom:1.5rem;">
+                    Contact Details
+                </h3>
+                <div class="d-flex flex-column gap-3 mb-4">
+                    <div class="info-card">
+                        <div class="info-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                        <div>
+                            <div class="info-label">Visit Us</div>
+                            <div class="info-value">
+                                Pantaleon del Rosario St, Cebu City, 6000 Cebu
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-icon"><i class="bi bi-telephone-fill"></i></div>
+                        <div>
+                            <div class="info-label">Call / Text</div>
+                            <div class="info-value">
+                                <a href="tel:+639123456789" style="color:var(--charcoal);text-decoration:none;">+63 912 345 6789</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-icon"><i class="bi bi-envelope-fill"></i></div>
+                        <div>
+                            <div class="info-label">Email</div>
+                            <div class="info-value">
+                                <a href="mailto:hello@lajess.ph" style="color:var(--charcoal);text-decoration:none;">hello@lajess.ph</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-icon"><i class="bi bi-clock-fill"></i></div>
+                        <div>
+                            <div class="info-label">Store Hours</div>
+                            <div class="info-value">Monday – Saturday<br>9:00 AM – 7:00 PM</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social links -->
+                <div style="padding:1.4rem;background:var(--rose-pale);border-radius:var(--radius-md);border:1px solid var(--rose-light);">
+                    <div class="info-label mb-2" style="color:var(--rose-deep);">Follow Us</div>
+                    <div style="display:flex;gap:.7rem;">
+                        <a href="#" style="display:flex;align-items:center;gap:.4rem;padding:.5rem .9rem;background:white;border:var(--border-rose);border-radius:50px;font-size:.75rem;color:var(--charcoal-mid);text-decoration:none;transition:var(--transition);"
+                           onmouseover="this.style.background='var(--rose)';this.style.color='white'"
+                           onmouseout="this.style.background='white';this.style.color='var(--charcoal-mid)'">
+                            <i class="bi bi-instagram"></i> Instagram
+                        </a>
+                        <a href="#" style="display:flex;align-items:center;gap:.4rem;padding:.5rem .9rem;background:white;border:var(--border-rose);border-radius:50px;font-size:.75rem;color:var(--charcoal-mid);text-decoration:none;transition:var(--transition);"
+                           onmouseover="this.style.background='var(--rose)';this.style.color='white'"
+                           onmouseout="this.style.background='white';this.style.color='var(--charcoal-mid)'">
+                            <i class="bi bi-facebook"></i> Facebook
+                        </a>
+                        <a href="#" style="display:flex;align-items:center;gap:.4rem;padding:.5rem .9rem;background:white;border:var(--border-rose);border-radius:50px;font-size:.75rem;color:var(--charcoal-mid);text-decoration:none;transition:var(--transition);"
+                           onmouseover="this.style.background='var(--rose)';this.style.color='white'"
+                           onmouseout="this.style.background='white';this.style.color='var(--charcoal-mid)'">
+                            <i class="bi bi-tiktok"></i> TikTok
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Map placeholder -->
+                <div class="map-placeholder mt-3">
+                    <iframe src="https://www.google.com/maps?q=Asian+College+of+Technology+Cebu&output=embed"
+                            width="100%"
+                            height="300"
+                            style="border:0; border-radius:10px;"
+                            allowfullscreen=""
+                            loading="lazy">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

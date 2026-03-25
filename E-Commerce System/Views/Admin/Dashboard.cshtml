@@ -1,0 +1,137 @@
+@{
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+    ViewData["Title"] = "Dashboard";
+    var totalProducts  = (int)(ViewBag.TotalProducts   ?? 0);
+    var lowStockCount  = (int)(ViewBag.LowStockCount   ?? 0);
+    var totalOrders    = (int)(ViewBag.TotalOrders     ?? 0);
+    var pendingOrders  = (int)(ViewBag.PendingOrders   ?? 0);
+    var totalRevenue   = (decimal)(ViewBag.TotalRevenue ?? 0);
+    var totalReviews   = (int)(ViewBag.TotalReviews    ?? 0);
+    var totalSuppliers = (int)(ViewBag.TotalSuppliers  ?? 0);
+    var recentOrders   = ViewBag.RecentOrders     as List<Order>   ?? new();
+    var lowStockProds  = ViewBag.LowStockProducts as List<Product> ?? new();
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#fce4e4;"><i class="bi bi-box-seam" style="color:#c62828;"></i></div>
+            <div class="stat-num">@totalProducts</div>
+            <div class="stat-label">Total Products</div>
+            <div class="stat-sub">
+                @if (lowStockCount > 0)
+                { <span style="color:#e65100;"><i class="bi bi-exclamation-triangle-fill"></i> @lowStockCount low stock</span> }
+                else
+                { <span style="color:#2e7d32;"><i class="bi bi-check-circle-fill"></i> All stocked</span> }
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#e3f2fd;"><i class="bi bi-bag-check" style="color:#1565c0;"></i></div>
+            <div class="stat-num">@totalOrders</div>
+            <div class="stat-label">Total Orders</div>
+            <div class="stat-sub">
+                @if (pendingOrders > 0)
+                { <span style="color:#6a1b9a;"><i class="bi bi-clock-fill"></i> @pendingOrders pending</span> }
+                else
+                { <span style="color:#2e7d32;"><i class="bi bi-check-circle-fill"></i> All processed</span> }
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#e8f5e9;"><i class="bi bi-cash-stack" style="color:#2e7d32;"></i></div>
+            <div class="stat-num" style="font-size:1.5rem;">₱@totalRevenue.ToString("N0")</div>
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-sub"><span style="color:var(--charcoal-soft);">Excl. cancelled</span></div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:var(--rose-pale);"><i class="bi bi-star-fill" style="color:var(--rose);"></i></div>
+            <div class="stat-num">@totalReviews</div>
+            <div class="stat-label">Reviews</div>
+            <div class="stat-sub"><span style="color:var(--charcoal-soft);">@totalSuppliers active suppliers</span></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="admin-card-title">Recent Orders</div>
+                <a asp-controller="Admin" asp-action="Orders" class="btn-admin btn-admin-outline btn-admin-sm">View All</a>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr><th>Order #</th><th>Customer</th><th>Amount</th><th>Status</th><th>Date</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var o in recentOrders)
+                        {
+                            var pill = o.Status switch {
+                                OrderStatus.Pending    => "sp-pending",
+                                OrderStatus.Confirmed  => "sp-confirmed",
+                                OrderStatus.Processing => "sp-processing",
+                                OrderStatus.Shipped    => "sp-shipped",
+                                OrderStatus.Delivered  => "sp-delivered",
+                                _                                            => "sp-cancelled"
+                            };
+                            <tr>
+                                <td><strong style="color:var(--charcoal);">@o.OrderNumber</strong></td>
+                                <td>@o.CustomerName</td>
+                                <td style="font-weight:700;color:var(--rose-deep);">₱@o.TotalAmount.ToString("N0")</td>
+                                <td><span class="status-pill @pill"><i class="@o.StatusIcon"></i> @o.Status</span></td>
+                                <td style="color:var(--charcoal-soft);">@o.OrderDate.ToString("MMM dd")</td>
+                                <td>
+                                    <a asp-controller="Admin" asp-action="OrderDetail" asp-route-id="@o.Id"
+                                       class="btn-admin btn-admin-outline btn-admin-sm">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                        @if (!recentOrders.Any())
+                        {
+                            <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--charcoal-soft);">No orders yet.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="admin-card-title"><i class="bi bi-exclamation-triangle-fill" style="color:#e65100;"></i> Low Stock</div>
+                <a asp-controller="Admin" asp-action="Inventory" class="btn-admin btn-admin-outline btn-admin-sm">Manage</a>
+            </div>
+            @if (!lowStockProds.Any())
+            {
+                <div style="text-align:center;padding:2rem;color:var(--charcoal-soft);">
+                    <i class="bi bi-check-circle-fill" style="font-size:1.8rem;color:#2e7d32;display:block;margin-bottom:.5rem;"></i>
+                    All products well stocked!
+                </div>
+            }
+            @foreach (var p in lowStockProds)
+            {
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:.8rem 1.5rem;border-bottom:1px solid rgba(201,116,127,.07);">
+                    <div style="display:flex;align-items:center;gap:.75rem;">
+                        <img src="@p.ImageUrl" style="width:40px;height:50px;object-fit:cover;border-radius:6px;flex-shrink:0;" />
+                        <div>
+                            <div style="font-size:.84rem;font-weight:600;color:var(--charcoal);">@p.Name</div>
+                            <div style="font-size:.72rem;color:var(--charcoal-soft);">@p.Category?.Name</div>
+                        </div>
+                    </div>
+                    @if (p.Stock == 0)
+                    { <span class="stock-out">Out of stock</span> }
+                    else
+                    { <span class="stock-low">@p.Stock left</span> }
+                </div>
+            }
+        </div>
+    </div>
+</div>

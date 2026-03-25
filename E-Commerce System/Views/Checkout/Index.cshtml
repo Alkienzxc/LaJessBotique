@@ -1,0 +1,286 @@
+﻿@{
+    ViewData["Title"] = "Checkout";
+    var cart = ViewBag.Cart as List<CartItem> ?? new();
+    var subtotal = (decimal)(ViewBag.Subtotal ?? 0);
+    var shipping = (decimal)(ViewBag.Shipping ?? 150);
+    var total = (decimal)(ViewBag.Total ?? 0);
+}
+@section Styles {
+    <style>
+        .checkout-hero {
+            background: var(--cream-dark);
+            padding: 3rem 0 2rem;
+            border-bottom: 1px solid rgba(201,116,127,.1);
+        }
+
+        .checkout-title {
+            font-family: var(--font-display);
+            font-size: 2.4rem;
+            font-weight: 400;
+        }
+
+            .checkout-title em {
+                font-style: italic;
+                color: var(--rose);
+            }
+
+        .checkout-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            border: 1px solid rgba(201,116,127,.1);
+        }
+
+        .form-label-lj {
+            font-size: .65rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--charcoal-soft);
+            font-weight: 500;
+            display: block;
+            margin-bottom: .4rem;
+        }
+
+        .form-input-lj {
+            width: 100%;
+            padding: .7rem 1rem;
+            border: var(--border-rose);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-body);
+            font-size: .88rem;
+            color: var(--charcoal);
+            outline: none;
+            transition: var(--transition);
+            background: white;
+        }
+
+            .form-input-lj:focus {
+                border-color: var(--rose);
+                box-shadow: 0 0 0 3px rgba(201,116,127,.1);
+            }
+
+        .order-item-row {
+            display: flex;
+            align-items: center;
+            gap: .9rem;
+            padding: .8rem 0;
+            border-bottom: 1px solid rgba(201,116,127,.08);
+        }
+
+            .order-item-row:last-child {
+                border-bottom: none;
+            }
+
+        .order-item-img {
+            width: 56px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            flex-shrink: 0;
+        }
+
+        .order-item-name {
+            font-family: var(--font-display);
+            font-size: .95rem;
+            color: var(--charcoal);
+        }
+
+        .order-item-meta {
+            font-size: .7rem;
+            color: var(--charcoal-soft);
+        }
+
+        .order-item-price {
+            font-family: var(--font-display);
+            font-size: .95rem;
+            color: var(--rose-deep);
+            font-weight: 500;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            margin-bottom: 2rem;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .72rem;
+            font-weight: 500;
+            color: var(--charcoal-soft);
+        }
+
+            .step.active {
+                color: var(--rose);
+            }
+
+        .step-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--rose-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .65rem;
+            color: var(--rose-deep);
+        }
+
+        .step.active .step-dot {
+            background: var(--rose);
+            color: white;
+        }
+
+        .step-line {
+            flex: 1;
+            height: 1px;
+            background: rgba(201,116,127,.2);
+            max-width: 40px;
+        }
+    </style>
+}
+
+<div class="checkout-hero">
+    <div class="container">
+        <div style="font-size:.72rem;color:var(--charcoal-soft);margin-bottom:.5rem;">
+            <a asp-controller="Home" asp-action="Index" style="color:var(--charcoal-soft);text-decoration:none;">Home</a>
+            <span style="margin:0 .5rem;color:var(--rose-light);">›</span>
+            <a asp-controller="Cart" asp-action="Index" style="color:var(--charcoal-soft);text-decoration:none;">Basket</a>
+            <span style="margin:0 .5rem;color:var(--rose-light);">›</span>
+            <span style="color:var(--rose);">Checkout</span>
+        </div>
+        <h1 class="checkout-title">Secure <em>Checkout</em></h1>
+    </div>
+</div>
+
+<div style="background:var(--cream);padding:3rem 0 5rem;">
+    <div class="container">
+
+        <!-- Steps -->
+        <div class="step-indicator">
+            <div class="step">
+                <div class="step-dot"><i class="bi bi-bag-check" style="font-size:.6rem;"></i></div>
+                <span>Basket</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step active">
+                <div class="step-dot">2</div>
+                <span>Details</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step">
+                <div class="step-dot">3</div>
+                <span>Confirm</span>
+            </div>
+        </div>
+
+        @if (TempData["CheckoutError"] != null)
+        {
+            <div class="alert alert-danger mb-3" style="font-size:.88rem;">
+                <i class="bi bi-exclamation-circle"></i> @TempData["CheckoutError"]
+            </div>
+        }
+
+        <div class="row g-4">
+            <!-- Form -->
+            <div class="col-lg-7">
+                <div class="checkout-card">
+                    <h3 style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:1.5rem;">
+                        Delivery Information
+                    </h3>
+                    <form asp-controller="Checkout" asp-action="PlaceOrder" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label-lj">Full Name</label>
+                                <input type="text" name="customerName" class="form-input-lj"
+                                       placeholder="e.g. Maria Santos" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-lj">Email Address</label>
+                                <input type="email" name="customerEmail" class="form-input-lj"
+                                       placeholder="your@email.com" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-lj">Phone Number</label>
+                                <input type="tel" name="customerPhone" class="form-input-lj"
+                                       placeholder="+63 912 345 6789" required />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label-lj">Complete Shipping Address</label>
+                                <textarea name="shippingAddress" class="form-input-lj" rows="3"
+                                          placeholder="House/Unit No., Street, Barangay, City, Province, ZIP"
+                                          required style="resize:vertical;"></textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label-lj">Order Notes (Optional)</label>
+                                <textarea name="notes" class="form-input-lj" rows="2"
+                                          placeholder="e.g. Please gift wrap, leave at guard house…"
+                                          style="resize:vertical;"></textarea>
+                            </div>
+                            <div class="col-12 mt-2">
+                                <button type="submit" class="btn-rose"
+                                        style="width:100%;justify-content:center;padding:1rem;font-size:.82rem;">
+                                    <i class="bi bi-lock-fill"></i> Place Order · ₱@total.ToString("N0")
+                                </button>
+                                <p style="font-size:.72rem;color:var(--charcoal-soft);text-align:center;margin-top:.8rem;">
+                                    <i class="bi bi-shield-check" style="color:var(--rose);"></i>
+                                    Your information is safe and secure.
+                                    Payment is collected upon delivery (COD).
+                                </p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-5">
+                <div class="checkout-card">
+                    <h3 style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:1.2rem;">
+                        Your Order (@cart.Count item@(cart.Count != 1 ? "s" : ""))
+                    </h3>
+
+                    @foreach (var item in cart)
+                    {
+                        <div class="order-item-row">
+                            <img src="@item.ImageUrl" alt="@item.ProductName"
+                                 class="order-item-img" />
+                            <div>
+                                <div class="order-item-name">@item.ProductName</div>
+                                <div class="order-item-meta">
+                                    Size: @(string.IsNullOrEmpty(item.SelectedSize) ? "—" : item.SelectedSize)
+                                    · Qty: @item.Quantity
+                                </div>
+                            </div>
+                            <div class="order-item-price">₱@item.SubTotal.ToString("N0")</div>
+                        </div>
+                    }
+
+                    <div style="padding-top:1rem;border-top:1px solid rgba(201,116,127,.15);margin-top:.5rem;">
+                        <div style="display:flex;justify-content:space-between;font-size:.85rem;color:var(--charcoal-mid);padding:.4rem 0;">
+                            <span>Subtotal</span><span>₱@subtotal.ToString("N0")</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:.85rem;color:var(--charcoal-mid);padding:.4rem 0;">
+                            <span>Shipping</span>
+                            <span>@(shipping == 0 ? "FREE" : "₱" + shipping.ToString("N0"))</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-family:var(--font-display);font-size:1.3rem;color:var(--charcoal);padding:.8rem 0 0;">
+                            <span>Total</span><span style="color:var(--rose-deep);">₱@total.ToString("N0")</span>
+                        </div>
+                    </div>
+
+                    <div style="background:var(--cream-dark);border-radius:var(--radius-sm);padding:.8rem 1rem;margin-top:1rem;font-size:.78rem;color:var(--charcoal-soft);">
+                        <i class="bi bi-info-circle" style="color:var(--rose);"></i>
+                        Payment method: <strong>Cash on Delivery (COD)</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

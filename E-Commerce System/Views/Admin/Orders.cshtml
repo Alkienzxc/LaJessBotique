@@ -1,0 +1,63 @@
+@model List<Order>
+@{
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+    ViewData["Title"] = "Orders";
+    var statusFilter = ViewBag.StatusFilter as string ?? "";
+    var statuses = new[] { "Pending","Confirmed","Processing","Shipped","Delivered","Cancelled" };
+}
+
+<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.5rem;">
+    <a asp-controller="Admin" asp-action="Orders"
+       class="btn-admin btn-admin-sm @(string.IsNullOrEmpty(statusFilter)?"btn-admin-rose":"btn-admin-outline")">All</a>
+    @foreach (var s in statuses)
+    {
+        <a asp-controller="Admin" asp-action="Orders" asp-route-status="@s"
+           class="btn-admin btn-admin-sm @(statusFilter==s?"btn-admin-rose":"btn-admin-outline")">@s</a>
+    }
+</div>
+
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div class="admin-card-title">@(string.IsNullOrEmpty(statusFilter)?"All Orders":statusFilter+" Orders")</div>
+        <span style="font-size:.78rem;color:var(--charcoal-soft);">@Model.Count order@(Model.Count!=1?"s":"")</span>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead>
+                <tr><th>Order #</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var o in Model)
+                {
+                    var pill = o.Status switch {
+                        OrderStatus.Pending    => "sp-pending",
+                        OrderStatus.Confirmed  => "sp-confirmed",
+                        OrderStatus.Processing => "sp-processing",
+                        OrderStatus.Shipped    => "sp-shipped",
+                        OrderStatus.Delivered  => "sp-delivered",
+                        _                                            => "sp-cancelled"
+                    };
+                    <tr>
+                        <td><strong style="color:var(--charcoal);">@o.OrderNumber</strong></td>
+                        <td>
+                            <div style="font-weight:600;color:var(--charcoal);">@o.CustomerName</div>
+                            <div style="font-size:.72rem;color:var(--charcoal-soft);">@o.CustomerEmail</div>
+                        </td>
+                        <td style="color:var(--charcoal-soft);">@o.OrderItems.Count item@(o.OrderItems.Count!=1?"s":"")</td>
+                        <td style="font-weight:700;color:var(--rose-deep);">₱@o.TotalAmount.ToString("N0")</td>
+                        <td><span class="status-pill @pill"><i class="@o.StatusIcon"></i> @o.Status</span></td>
+                        <td style="color:var(--charcoal-soft);">@o.OrderDate.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            <a asp-controller="Admin" asp-action="OrderDetail" asp-route-id="@o.Id"
+                               class="btn-admin btn-admin-outline btn-admin-sm"><i class="bi bi-eye"></i> View</a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--charcoal-soft);">No orders found.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

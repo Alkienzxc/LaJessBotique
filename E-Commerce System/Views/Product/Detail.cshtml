@@ -1,0 +1,657 @@
+﻿@model Product
+@{
+    ViewData["Title"] = Model.Name;
+    var related = ViewBag.RelatedProducts as List<Product> ?? new();
+    var sizes = Model.Sizes.Split(',', StringSplitOptions.RemoveEmptyEntries);
+    var colors = Model.Colors.Split(',', StringSplitOptions.RemoveEmptyEntries);
+}
+
+@section Styles {
+    <style>
+        .detail-breadcrumb {
+            font-size: .72rem;
+            color: var(--charcoal-soft);
+            padding: 1.2rem 0 0;
+        }
+
+            .detail-breadcrumb a {
+                color: var(--charcoal-soft);
+                text-decoration: none;
+            }
+
+                .detail-breadcrumb a:hover {
+                    color: var(--rose);
+                }
+
+            .detail-breadcrumb span {
+                margin: 0 .5rem;
+                color: var(--rose-light);
+            }
+
+        .detail-img-wrap {
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            aspect-ratio: 3/4;
+            background: var(--cream-dark);
+        }
+
+            .detail-img-wrap img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        /* Info panel */
+        .detail-cat-tag {
+            font-size: .65rem;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+            color: var(--rose);
+            font-weight: 500;
+            margin-bottom: .6rem;
+        }
+
+        .detail-name {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem,3.5vw,2.8rem);
+            font-weight: 400;
+            color: var(--charcoal);
+            line-height: 1.1;
+            margin-bottom: .8rem;
+        }
+
+        .detail-price {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 500;
+            color: var(--rose-deep);
+            margin-bottom: 1.2rem;
+        }
+
+            .detail-price .currency {
+                font-size: 1rem;
+                font-family: var(--font-body);
+                font-weight: 400;
+            }
+
+        .detail-divider {
+            border: none;
+            border-top: 1px solid rgba(201,116,127,.15);
+            margin: 1.4rem 0;
+        }
+
+        .detail-label {
+            font-size: .65rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--charcoal-soft);
+            font-weight: 500;
+            margin-bottom: .6rem;
+            display: block;
+        }
+
+        .detail-desc {
+            font-size: .92rem;
+            color: var(--charcoal-mid);
+            line-height: 1.85;
+        }
+
+        /* Size selector */
+        .size-options {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+        }
+
+        .size-btn {
+            padding: .45rem .9rem;
+            border: 1.5px solid rgba(201,116,127,.25);
+            border-radius: var(--radius-sm);
+            background: white;
+            font-family: var(--font-body);
+            font-size: .78rem;
+            color: var(--charcoal);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+            .size-btn:hover, .size-btn.selected {
+                border-color: var(--rose);
+                background: var(--rose-pale);
+                color: var(--rose-deep);
+            }
+
+        /* Color dots */
+        .color-options {
+            display: flex;
+            gap: .6rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .color-name {
+            font-size: .8rem;
+            color: var(--charcoal-mid);
+        }
+
+        /* Quantity */
+        .qty-wrap {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .qty-btn {
+            width: 34px;
+            height: 34px;
+            border: var(--border-rose);
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--charcoal-mid);
+            transition: var(--transition);
+        }
+
+            .qty-btn:hover {
+                background: var(--rose-pale);
+                color: var(--rose);
+            }
+
+        .qty-input {
+            width: 50px;
+            height: 34px;
+            text-align: center;
+            border: var(--border-rose);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--charcoal);
+            outline: none;
+        }
+
+        /* Stock badge */
+        .stock-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .72rem;
+            font-weight: 500;
+            padding: .3rem .8rem;
+            border-radius: 50px;
+        }
+
+        .stock-in {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .stock-low {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .stock-out {
+            background: #fce4e4;
+            color: #c62828;
+        }
+
+        /* Tabs */
+        .detail-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid rgba(201,116,127,.15);
+            margin-bottom: 2rem;
+        }
+
+        .detail-tab {
+            padding: .7rem 1.4rem;
+            border: none;
+            background: none;
+            font-family: var(--font-body);
+            font-size: .8rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--charcoal-soft);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: var(--transition);
+        }
+
+            .detail-tab.active {
+                color: var(--rose);
+                border-bottom-color: var(--rose);
+            }
+
+        .tab-pane {
+            display: none;
+        }
+
+            .tab-pane.active {
+                display: block;
+            }
+
+        /* Reviews */
+        .review-item {
+            padding: 1.4rem 0;
+            border-bottom: 1px solid rgba(201,116,127,.1);
+        }
+
+            .review-item:last-child {
+                border-bottom: none;
+            }
+
+        .ri-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: .6rem;
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+
+        .ri-name {
+            font-weight: 500;
+            font-size: .88rem;
+            color: var(--charcoal);
+        }
+
+        .ri-date {
+            font-size: .72rem;
+            color: var(--charcoal-soft);
+        }
+
+        .ri-stars {
+            color: var(--gold);
+            font-size: .82rem;
+        }
+
+        .ri-comment {
+            font-size: .88rem;
+            color: var(--charcoal-mid);
+            line-height: 1.75;
+        }
+
+        /* Review form */
+        .review-form {
+            background: var(--cream-dark);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .star-picker {
+            display: flex;
+            gap: .3rem;
+            margin-bottom: .8rem;
+        }
+
+        .star-pick {
+            font-size: 1.6rem;
+            cursor: pointer;
+            color: #e0d0d0;
+            transition: color .15s;
+            user-select: none;
+        }
+
+            .star-pick.lit {
+                color: var(--gold);
+            }
+
+        /* Related */
+        .related-section {
+            padding: 5rem 0;
+            background: var(--cream-dark);
+        }
+    </style>
+}
+
+<div style="background:var(--cream);padding-bottom:5rem;">
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="detail-breadcrumb">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <span>›</span>
+            <a asp-controller="Product" asp-action="Index">Shop</a>
+            <span>›</span>
+            <a asp-controller="Product" asp-action="Index"
+               asp-route-categoryId="@Model.CategoryId">@Model.Category?.Name</a>
+            <span>›</span>
+            <span style="color:var(--charcoal);">@Model.Name</span>
+        </div>
+
+        <div class="row g-5 mt-1">
+
+            <!-- ── Image ── -->
+            <div class="col-lg-6">
+                <div class="detail-img-wrap">
+                    <img src="@Model.ImageUrl" alt="@Model.Name" />
+                </div>
+            </div>
+
+            <!-- ── Info ── -->
+            <div class="col-lg-6">
+                <div class="detail-cat-tag">@Model.Category?.Name</div>
+                <h1 class="detail-name">@Model.Name</h1>
+
+                <!-- Stars summary -->
+                @if (Model.Reviews.Any())
+                {
+                    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem;">
+                        <div style="color:var(--gold);font-size:.9rem;">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="bi bi-star-fill @(i <= Math.Round(Model.AverageRating) ? "star-filled" : "star-empty")"></i>
+                            }
+                        </div>
+                        <span style="font-size:.8rem;color:var(--charcoal-soft);">
+                            @Model.AverageRating / 5 · @Model.Reviews.Count() review@(Model.Reviews.Count() != 1 ? "s" : "")
+                        </span>
+                    </div>
+                }
+
+                <div class="detail-price">
+                    <span class="currency">₱</span>@Model.Price.ToString("N0")
+                </div>
+
+                <!-- Stock status -->
+                @if (Model.Stock == 0)
+                {
+                    <span class="stock-badge stock-out mb-3"><i class="bi bi-x-circle"></i> Out of Stock</span>
+                }
+                else if (Model.IsLowStock)
+                {
+                    <span class="stock-badge stock-low mb-3"><i class="bi bi-exclamation-circle"></i> Only @Model.Stock left!</span>
+                }
+                else
+                {
+                    <span class="stock-badge stock-in mb-3"><i class="bi bi-check-circle"></i> In Stock</span>
+                }
+
+                <hr class="detail-divider" />
+                <p class="detail-desc">@Model.Description</p>
+                <hr class="detail-divider" />
+
+                <form asp-controller="Cart" asp-action="Add" method="post" id="addToCartForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productId" value="@Model.Id" />
+                    <input type="hidden" name="selectedSize" id="selectedSizeInput" value="@(sizes.FirstOrDefault() ?? "")" />
+
+                    <!-- Sizes -->
+                    @if (sizes.Any())
+                    {
+                        <div class="mb-3">
+                            <span class="detail-label">Size</span>
+                            <div class="size-options">
+                                @foreach (var s in sizes)
+                                {
+                                    <button type="button"
+                                            class="size-btn @(s == sizes.FirstOrDefault() ? "selected" : "")"
+                                            onclick="selectSize(this, '@s.Trim()')">
+                                        @s.Trim()
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Colors -->
+                    @if (colors.Any())
+                    {
+                        <div class="mb-3">
+                            <span class="detail-label">Colors available</span>
+                            <div class="color-options">
+                                @foreach (var c in colors)
+                                {
+                                    <span class="color-name">@c.Trim()</span>
+                                    @if (c != colors.Last())
+                                    {
+                                        <span style="color:var(--rose-light);">·</span>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Quantity -->
+                    <div class="mb-4">
+                        <span class="detail-label">Quantity</span>
+                        <div class="qty-wrap">
+                            <button type="button" class="qty-btn" onclick="changeQty(-1)">−</button>
+                            <input type="number" name="quantity" id="qtyInput"
+                                   class="qty-input" value="1" min="1" max="@Model.Stock" readonly />
+                            <button type="button" class="qty-btn" onclick="changeQty(1)">+</button>
+                            <span style="font-size:.78rem;color:var(--charcoal-soft);margin-left:.5rem;">
+                                @Model.Stock available
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Add to cart -->
+                    @if (Model.IsInStock)
+                    {
+                        <button type="submit" class="btn-rose" style="width:100%;justify-content:center;padding:1rem;">
+                            <i class="bi bi-bag-plus"></i> Add to Basket
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn-outline-rose" style="width:100%;justify-content:center;padding:1rem;" disabled>
+                            Out of Stock
+                        </button>
+                    }
+                </form>
+
+                <div class="d-flex gap-3 mt-3 flex-wrap">
+                    <div style="display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--charcoal-soft);">
+                        <i class="bi bi-shield-check" style="color:var(--rose);"></i> 100% Authentic
+                    </div>
+                    <div style="display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--charcoal-soft);">
+                        <i class="bi bi-truck" style="color:var(--rose);"></i> Fast Delivery
+                    </div>
+                    <div style="display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--charcoal-soft);">
+                        <i class="bi bi-arrow-return-left" style="color:var(--rose);"></i> Easy Returns
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TABS: Description / Reviews ── -->
+        <div class="mt-5 pt-3">
+            <div class="detail-tabs">
+                <button class="detail-tab active" onclick="showTab('desc',this)">Description</button>
+                <button class="detail-tab" onclick="showTab('reviews',this)">
+                    Reviews (@Model.Reviews.Count())
+                </button>
+            </div>
+
+            <!-- Description tab -->
+            <div class="tab-pane active" id="tab-desc">
+                <p style="font-size:.95rem;color:var(--charcoal-mid);line-height:1.9;max-width:700px;">
+                    @Model.Description
+                </p>
+                <div class="row g-3 mt-3">
+                    <div class="col-auto">
+                        <div style="background:var(--rose-pale);border-radius:var(--radius-md);padding:.8rem 1.2rem;">
+                            <div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--rose-deep);font-weight:500;">Sizes</div>
+                            <div style="font-size:.9rem;color:var(--charcoal);margin-top:2px;">@Model.Sizes</div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div style="background:var(--rose-pale);border-radius:var(--radius-md);padding:.8rem 1.2rem;">
+                            <div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--rose-deep);font-weight:500;">Colors</div>
+                            <div style="font-size:.9rem;color:var(--charcoal);margin-top:2px;">@Model.Colors</div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div style="background:var(--rose-pale);border-radius:var(--radius-md);padding:.8rem 1.2rem;">
+                            <div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--rose-deep);font-weight:500;">Category</div>
+                            <div style="font-size:.9rem;color:var(--charcoal);margin-top:2px;">@Model.Category?.Name</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reviews tab -->
+            <div class="tab-pane" id="tab-reviews">
+                @if (Model.Reviews.Any())
+                {
+                    <div style="max-width:700px;">
+                        @foreach (var r in Model.Reviews)
+                        {
+                            <div class="review-item">
+                                <div class="ri-header">
+                                    <div>
+                                        <span class="ri-name">@r.CustomerName</span>
+                                        <div class="ri-stars mt-1">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="bi bi-star-fill @(i <= r.Rating ? "" : "star-empty")"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                    <span class="ri-date">@r.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                </div>
+                                <p class="ri-comment">@r.Comment</p>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p style="color:var(--charcoal-soft);font-size:.9rem;">
+                        No reviews yet. Be the first to review this product!
+                    </p>
+                }
+
+                <!-- Write a review -->
+                <div class="review-form" style="max-width:600px;">
+                    <h3 style="font-family:var(--font-display);font-size:1.4rem;margin-bottom:1.2rem;">
+                        Write a Review
+                    </h3>
+                    @if (TempData["ReviewError"] != null)
+                    {
+                        <div class="alert alert-danger py-2 mb-3" style="font-size:.85rem;">
+                            @TempData["ReviewError"]
+                        </div>
+                    }
+                    <form asp-controller="Product" asp-action="AddReview" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="productId" value="@Model.Id" />
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="detail-label">Your Name</label>
+                                <input type="text" name="customerName" required
+                                       placeholder="e.g. Maria G."
+                                       style="width:100%;padding:.6rem 1rem;border:var(--border-rose);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:.85rem;outline:none;background:white;" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="detail-label">Email Address</label>
+                                <input type="email" name="customerEmail" required
+                                       placeholder="your@email.com"
+                                       style="width:100%;padding:.6rem 1rem;border:var(--border-rose);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:.85rem;outline:none;background:white;" />
+                            </div>
+                            <div class="col-12">
+                                <label class="detail-label">Your Rating</label>
+                                <div class="star-picker" id="starPicker">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <span class="star-pick" data-val="@i" onclick="setRating(@i)">★</span>
+                                    }
+                                </div>
+                                <input type="hidden" name="rating" id="ratingInput" value="5" />
+                            </div>
+                            <div class="col-12">
+                                <label class="detail-label">Your Review</label>
+                                <textarea name="comment" rows="4" required
+                                          placeholder="Share your experience with this product…"
+                                          style="width:100%;padding:.7rem 1rem;border:var(--border-rose);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:.85rem;outline:none;background:white;resize:vertical;"></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn-rose">
+                                    <i class="bi bi-send"></i> Submit Review
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Related Products -->
+@if (related.Any())
+{
+    <section class="related-section">
+        <div class="container">
+            <div class="text-center mb-4">
+                <span class="section-eyebrow">You May Also Like</span>
+                <h2 class="section-title">Related <em>Styles</em></h2>
+                <div class="section-divider"></div>
+            </div>
+            <div class="row g-4">
+                @foreach (var p in related)
+                {
+                    <div class="col-lg-3 col-md-6 col-6">
+                        <div class="product-card">
+                            <div class="product-card-img">
+                                <img src="@p.ImageUrl" alt="@p.Name" loading="lazy" />
+                                <div class="product-card-overlay">
+                                    <a asp-controller="Product" asp-action="Detail"
+                                       asp-route-id="@p.Id" class="overlay-btn">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="product-card-body">
+                                <div class="product-cat-tag">@p.Category?.Name</div>
+                                <div class="product-name">@p.Name</div>
+                                <div class="product-price"><span class="currency">₱</span>@p.Price.ToString("N0")</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@section Scripts {
+    <script>
+        // Tab switching
+        function showTab(id, btn) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.detail-tab').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + id).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function selectSize(btn, size) {
+            document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            document.getElementById('selectedSizeInput').value = size;
+        }
+
+        function changeQty(delta) {
+            const input = document.getElementById('qtyInput');
+            const max   = parseInt(input.max) || 99;
+            let val = parseInt(input.value) + delta;
+            val = Math.max(1, Math.min(val, max));
+            input.value = val;
+        }
+
+        function setRating(val) {
+            document.getElementById('ratingInput').value = val;
+            document.querySelectorAll('.star-pick').forEach((s, i) => {
+                s.classList.toggle('lit', i < val);
+            });
+        }
+        document.querySelectorAll('.star-pick').forEach(s => s.classList.add('lit'));
+    </script>
+}

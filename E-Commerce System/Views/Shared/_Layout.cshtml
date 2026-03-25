@@ -1,0 +1,227 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — LaJess Boutique</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+    <!-- ═══ NAVBAR ═══ -->
+    <nav class="lj-navbar" id="mainNav">
+        <a class="lj-brand" asp-controller="Home" asp-action="Index">
+            <span class="lj-brand-name">La<span>Jess</span></span>
+            <span class="lj-brand-tagline">Boutique · Clothing &amp; Apparel</span>
+        </a>
+
+        <ul class="lj-nav-links mb-0">
+            <li>
+                <a asp-controller="Home" asp-action="Index"
+                   class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")">Home</a>
+            </li>
+            <li>
+                <a asp-controller="Product" asp-action="Index"
+                   class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Product" ? "active" : "")">Shop</a>
+            </li>
+            <li>
+                <a asp-controller="About" asp-action="Index"
+                   class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "About" ? "active" : "")">About</a>
+            </li>
+            <li>
+                <a asp-controller="Contact" asp-action="Index"
+                   class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Contact" ? "active" : "")">Contact</a>
+            </li>
+        </ul>
+
+        <div class="lj-nav-actions">
+            <div class="lj-search-wrap">
+                <i class="bi bi-search"></i>
+                <form asp-controller="Product" asp-action="Index" method="get">
+                    <input type="text" name="search" placeholder="Search styles…" value="@ViewBag.Search" autocomplete="off" />
+                </form>
+            </div>
+
+            <a asp-controller="Cart" asp-action="Index" class="lj-icon-btn" title="Your Basket">
+                <i class="bi bi-bag"></i>
+                @{
+                    var cartCount = Context.Session.GetString("CartCount");
+                    if (!string.IsNullOrEmpty(cartCount) && cartCount != "0")
+                    {
+                        <span class="cart-badge">@cartCount</span>
+                    }
+                }
+            </a>
+
+            <button class="lj-hamburger" id="hamburgerBtn" aria-label="Menu">
+                <i class="bi bi-list" id="hamburgerIcon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <main class="lj-main">
+        @RenderBody()
+    </main>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer class="lj-footer">
+        <div class="container">
+            <div class="row g-5">
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-brand-name">La<span>Jess</span></div>
+                    <div class="footer-tagline mb-4">Boutique · Clothing &amp; Apparel</div>
+                    <p style="font-size:.88rem;line-height:1.8;color:rgba(255,255,255,.42);max-width:280px;">
+                        Curated fashion for the modern Filipina. Every piece is chosen with love, quality, and style in mind.
+                    </p>
+                    <div class="social-links mt-4">
+                        <a href="#" class="social-link"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="social-link"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="bi bi-tiktok"></i></a>
+                        <a href="#" class="social-link"><i class="bi bi-envelope"></i></a>
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-md-6 col-6">
+                    <div class="footer-heading">Navigate</div>
+                    <ul class="footer-links">
+                        <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+                        <li><a asp-controller="Product" asp-action="Index">Shop All</a></li>
+                        <li><a asp-controller="About" asp-action="Index">About Us</a></li>
+                        <li><a asp-controller="Contact" asp-action="Index">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-2 col-md-6 col-6">
+                    <div class="footer-heading">Categories</div>
+                    <ul class="footer-links">
+                        <li><a asp-controller="Product" asp-action="Index" asp-route-categoryId="1">Tops</a></li>
+                        <li><a asp-controller="Product" asp-action="Index" asp-route-categoryId="2">Dresses</a></li>
+                        <li><a asp-controller="Product" asp-action="Index" asp-route-categoryId="3">Bottoms</a></li>
+                        <li><a asp-controller="Product" asp-action="Index" asp-route-categoryId="4">Outerwear</a></li>
+                        <li><a asp-controller="Product" asp-action="Index" asp-route-categoryId="5">Accessories</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-heading">Get In Touch</div>
+                    <ul class="footer-links" style="display:flex;flex-direction:column;gap:.9rem;">
+                        <li style="display:flex;align-items:flex-start;gap:.8rem;">
+                            <i class="bi bi-geo-alt" style="color:var(--rose-light);margin-top:3px;"></i>
+                            <span>Pantaleon del Rosario St, Cebu City, 6000 Cebu</span>
+                        </li>
+                        <li style="display:flex;align-items:center;gap:.8rem;">
+                            <i class="bi bi-telephone" style="color:var(--rose-light);"></i>
+                            <a href="tel:+639123456789">+63 912 345 6789</a>
+                        </li>
+                        <li style="display:flex;align-items:center;gap:.8rem;">
+                            <i class="bi bi-envelope" style="color:var(--rose-light);"></i>
+                            <a href="mailto:hello@lajess.ph">hello@lajess.ph</a>
+                        </li>
+                        <li style="display:flex;align-items:center;gap:.8rem;">
+                            <i class="bi bi-clock" style="color:var(--rose-light);"></i>
+                            <span>Mon–Sat, 9:00 AM – 7:00 PM</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <hr class="footer-divider" />
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <p class="footer-bottom mb-0">
+                    &copy; @DateTime.Now.Year LaJess Boutique. Made with
+                    <i class="bi bi-heart-fill" style="color:var(--rose);font-size:.7rem;"></i>
+                    by Lalaine &amp; Jessica.
+                </p>
+                <p class="footer-bottom mb-0">All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="lj-mobile-menu" id="mobileMenu">
+        <a asp-controller="Home" asp-action="Index">Home</a>
+        <a asp-controller="Product" asp-action="Index">Shop</a>
+        <a asp-controller="About" asp-action="Index">About</a>
+        <a asp-controller="Contact" asp-action="Index">Contact</a>
+        <a asp-controller="Cart" asp-action="Index">
+            <i class="bi bi-bag me-2"></i>Basket
+        </a>
+        <div class="mobile-search-row">
+            <i class="bi bi-search"></i>
+            <form asp-controller="Product" asp-action="Index" method="get" style="flex:1">
+                <input type="text" name="search" placeholder="Search styles…"
+                       style="width:100%;border:none;outline:none;font-family:var(--font-body);background:transparent;font-size:0.9rem;color:var(--charcoal);" />
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="lj-toast" id="ljToast">
+        <i class="bi bi-bag-check"></i>
+        <span id="toastMsg">Added to basket!</span>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Navbar scroll
+        const nav = document.getElementById('mainNav');
+        window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 40));
+
+        // Hamburger
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const hamburgerIcon = document.getElementById('hamburgerIcon');
+        const mobileMenu = document.getElementById('mobileMenu');
+        hamburgerBtn.addEventListener('click', () => {
+            const open = mobileMenu.classList.toggle('open');
+            hamburgerIcon.className = open ? 'bi bi-x-lg' : 'bi bi-list';
+            document.body.style.overflow = open ? 'hidden' : '';
+        });
+        mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+            mobileMenu.classList.remove('open');
+            hamburgerIcon.className = 'bi bi-list';
+            document.body.style.overflow = '';
+        }));
+
+        // Scroll reveal — runs after full DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            const revealObserver = new IntersectionObserver(entries => {
+                entries.forEach(e => {
+                    if (e.isIntersecting) {
+                        e.target.classList.add('visible');
+                        revealObserver.unobserve(e.target);
+                    }
+                });
+            }, {
+                threshold: 0,
+                rootMargin: '0px 0px -40px 0px'
+            });
+            document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+            // Safety net — force all reveals visible after 1.5s in case observer misses any
+            setTimeout(() => {
+                document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+            }, 1500);
+        });
+
+        // Toast
+        function showToast(msg) {
+            const t = document.getElementById('ljToast');
+            document.getElementById('toastMsg').textContent = msg || 'Done!';
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3200);
+        }
+
+        @if (TempData["Success"] != null)
+        {
+                <text>document.addEventListener('DOMContentLoaded',()=>showToast('@TempData["Success"]'));</text>
+        }
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    
+
+</body>
+</html>

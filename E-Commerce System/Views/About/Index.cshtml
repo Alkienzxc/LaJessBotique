@@ -1,0 +1,457 @@
+﻿@{
+    ViewData["Title"] = "About Us";
+    var owners = ViewBag.Owners as List<Owner> ?? new();
+    var products = ViewBag.Products as List<Product> ?? new();
+    int totalProds = (int)(ViewBag.TotalProducts ?? 0);
+    int totalCats = (int)(ViewBag.TotalCategories ?? 0);
+    int totalOrds = (int)(ViewBag.TotalOrders ?? 0);
+    int totalRevs = (int)(ViewBag.TotalReviews ?? 0);
+}
+@section Styles {
+    <style>
+        .about-hero {
+            background: var(--charcoal);
+            padding: 6rem 0;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+            .about-hero::before {
+                content: 'LAJESS';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%,-50%);
+                font-family: var(--font-display);
+                font-size: 20vw;
+                font-weight: 400;
+                color: rgba(255,255,255,.03);
+                white-space: nowrap;
+                pointer-events: none;
+                letter-spacing: .1em;
+            }
+
+        .about-hero-eyebrow {
+            font-size: .65rem;
+            letter-spacing: .3em;
+            text-transform: uppercase;
+            color: var(--rose-light);
+            font-weight: 500;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .about-hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem,5vw,4.5rem);
+            font-weight: 400;
+            color: white;
+            line-height: 1.05;
+            margin-bottom: 1.5rem;
+        }
+
+            .about-hero-title em {
+                font-style: italic;
+                color: var(--rose-light);
+            }
+
+        .about-hero-sub {
+            font-size: .95rem;
+            color: rgba(255,255,255,.55);
+            margin: 0 auto;
+            line-height: 1.85;
+        }
+
+        /* Stats band */
+        .stats-band {
+            background: var(--rose);
+            padding: 3rem 0;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-big {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            font-weight: 400;
+            color: white;
+            line-height: 1;
+        }
+
+            .stat-big span {
+                font-size: 1.8rem;
+            }
+
+        .stat-lbl {
+            font-size: .65rem;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,.75);
+            margin-top: .4rem;
+        }
+
+        /* Story */
+        .story-section {
+            padding: 6rem 0;
+            background: var(--cream);
+        }
+
+        .story-img {
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            height: 500px;
+        }
+
+            .story-img img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .story-pull-quote {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            font-style: italic;
+            color: var(--charcoal);
+            line-height: 1.4;
+            border-left: 3px solid var(--rose);
+            padding-left: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        /* Owners */
+        .owners-section {
+            padding: 6rem 0;
+            background: var(--cream-dark);
+        }
+
+        .owner-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            transition: var(--transition);
+            border: 1px solid rgba(201,116,127,.08);
+        }
+
+            .owner-card:hover {
+                transform: translateY(-6px);
+                box-shadow: var(--shadow-hover);
+            }
+
+        .owner-img {
+            aspect-ratio: 4/5;
+            overflow: hidden;
+        }
+
+            .owner-img img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform .6s var(--ease);
+            }
+
+        .owner-card:hover .owner-img img {
+            transform: scale(1.05);
+        }
+
+        .owner-body {
+            padding: 1.8rem;
+        }
+
+        .owner-name {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            font-weight: 400;
+            color: var(--charcoal);
+            margin-bottom: .2rem;
+        }
+
+        .owner-role {
+            font-size: .65rem;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--rose);
+            margin-bottom: 1rem;
+        }
+
+        .owner-bio {
+            font-size: .88rem;
+            color: var(--charcoal-mid);
+            line-height: 1.8;
+        }
+
+        .owner-socials {
+            display: flex;
+            gap: .6rem;
+            margin-top: 1.2rem;
+        }
+
+        .owner-social-btn {
+            width: 36px;
+            height: 36px;
+            border: var(--border-rose);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--charcoal-soft);
+            text-decoration: none;
+            font-size: .9rem;
+            transition: var(--transition);
+        }
+
+            .owner-social-btn:hover {
+                background: var(--rose);
+                border-color: var(--rose);
+                color: white;
+            }
+
+        /* Products showcase */
+        .products-section {
+            padding: 6rem 0;
+            background: var(--cream);
+        }
+
+        /* Values */
+        .values-section {
+            padding: 6rem 0;
+            background: var(--charcoal);
+        }
+
+        .value-card {
+            padding: 2.5rem 2rem;
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            transition: var(--transition);
+        }
+
+            .value-card:hover {
+                background: rgba(255,255,255,.05);
+                border-color: rgba(201,116,127,.3);
+            }
+
+        .value-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(201,116,127,.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: var(--rose-light);
+            margin: 0 auto 1.2rem;
+        }
+
+        .value-title {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            color: white;
+            margin-bottom: .6rem;
+        }
+
+        .value-desc {
+            font-size: .83rem;
+            color: rgba(255,255,255,.45);
+            line-height: 1.75;
+        }
+    </style>
+}
+
+<!-- Hero -->
+<section class="about-hero">
+    <div class="container">
+        <span class="about-hero-eyebrow">Our Story</span>
+        <h1 class="about-hero-title">Fashion Born from<br><em>Friendship & Passion</em></h1>
+        <p class="about-hero-sub">
+            Two best friends. One shared dream. A boutique built with love for every Filipina.
+        </p>
+    </div>
+</section>
+
+<!-- Stats Band -->
+<div class="stats-band">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-6 col-md-3">
+                <div class="stat-item reveal">
+                    <div class="stat-big">@totalProds<span>+</span></div>
+                    <div class="stat-lbl">Products</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item reveal">
+                    <div class="stat-big">@totalCats</div>
+                    <div class="stat-lbl">Categories</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item reveal">
+                    <div class="stat-big">@totalOrds<span>+</span></div>
+                    <div class="stat-lbl">Orders Fulfilled</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item reveal">
+                    <div class="stat-big">@totalRevs<span>+</span></div>
+                    <div class="stat-lbl">Happy Reviews</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Story -->
+<section class="story-section">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 reveal">
+                <div class="story-img">
+                    <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=700&q=85"
+                         alt="LaJess Story" />
+                </div>
+            </div>
+            <div class="col-lg-6 reveal">
+                <span class="section-eyebrow">How We Started</span>
+                <h2 class="section-title">A Boutique Built on<br><em>Shared Dreams</em></h2>
+                <div class="section-divider left"></div>
+                <p style="font-size:.93rem;color:var(--charcoal-mid);line-height:1.9;margin-bottom:1rem;">
+                    LaJess Boutique was born in 2023 from a simple conviction: every Filipina deserves
+                    to look and feel beautiful — without the hassle of sifting through endless options
+                    to find quality pieces that actually fit and flatter.
+                </p>
+                <div class="story-pull-quote">
+                    "We didn't just want to sell clothes. We wanted to help women feel like
+                    the best version of themselves, every single day."
+                </div>
+                <p style="font-size:.93rem;color:var(--charcoal-mid);line-height:1.9;">
+                    What started as a shared Google Sheet of dream styles has grown into a boutique
+                    trusted by thousands of women across the Philippines — from Cebu to Manila, and
+                    everywhere in between.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Owners -->
+<section class="owners-section">
+    <div class="container">
+        <div class="text-center mb-5 reveal">
+            <span class="section-eyebrow">The Faces Behind LaJess</span>
+            <h2 class="section-title">Meet the <em>Founders</em></h2>
+            <div class="section-divider"></div>
+        </div>
+        <div class="row g-4 justify-content-center">
+            @foreach (var owner in owners)
+            {
+                <div class="col-lg-4 col-md-6 reveal">
+                    <div class="owner-card">
+                        <div class="owner-img">
+                            <img src="@owner.ImageUrl" alt="@owner.Name" loading="lazy" />
+                        </div>
+                        <div class="owner-body">
+                            <h4 class="owner-name">@owner.Name</h4>
+                            <div class="owner-role">@owner.Role</div>
+                            @*<p class="owner-bio">@owner.Bio</p>*@
+                            <div class="owner-socials">
+                                @if (!string.IsNullOrEmpty(owner.Instagram))
+                                {
+                                    <a href="@owner.Instagram" class="owner-social-btn" target="_blank">
+                                        <i class="bi bi-instagram"></i>
+                                    </a>
+                                }
+                                @if (!string.IsNullOrEmpty(owner.Facebook))
+                                {
+                                    <a href="@owner.Facebook" class="owner-social-btn" target="_blank">
+                                        <i class="bi bi-facebook"></i>
+                                    </a>
+                                }
+                                @if (!string.IsNullOrEmpty(owner.LinkedIn))
+                                {
+                                    <a href="@owner.LinkedIn" class="owner-social-btn" target="_blank">
+                                        <i class="bi bi-linkedin"></i>
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products showcase -->
+@if (products.Any())
+{
+    <section class="products-section">
+        <div class="container">
+            <div class="text-center mb-5 reveal">
+                <span class="section-eyebrow">Our Picks</span>
+                <h2 class="section-title">Styles We're <em>Proud Of</em></h2>
+                <div class="section-divider"></div>
+            </div>
+            <div class="row g-4">
+                @foreach (var p in products)
+                {
+                    <div class="col-lg-2 col-md-4 col-6 reveal">
+                        <div class="product-card">
+                            <div class="product-card-img">
+                                <img src="@p.ImageUrl" alt="@p.Name" loading="lazy" />
+                                <div class="product-card-overlay">
+                                    <a asp-controller="Product" asp-action="Detail"
+                                       asp-route-id="@p.Id" class="overlay-btn">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="product-card-body">
+                                <div class="product-cat-tag">@p.Category?.Name</div>
+                                <div class="product-name">@p.Name</div>
+                                <div class="product-price"><span class="currency">₱</span>@p.Price.ToString("N0")</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="text-center mt-5">
+                <a asp-controller="Product" asp-action="Index" class="btn-rose">
+                    Shop All Styles <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+}
+
+<!-- Values -->
+<section class="values-section">
+    <div class="container">
+        <div class="text-center mb-5 reveal">
+            <span class="section-eyebrow" style="color:var(--rose-light);">What We Stand For</span>
+            <h2 class="section-title" style="color:white;">Our <em style="color:var(--rose-light);">Values</em></h2>
+            <div class="section-divider"></div>
+        </div>
+        <div class="row g-4">
+            @foreach (var v in new[]{
+                        ("bi bi-heart",       "Curated with Love",    "Every piece is personally selected by Lalaine and Jessica. If we wouldn't wear it ourselves, it doesn't make the cut."),
+                        ("bi bi-shield-check","Uncompromising Quality","We work only with trusted suppliers and inspect every product before it reaches your door."),
+                        ("bi bi-people",      "Community First",       "LaJess is more than a boutique — it's a community of women who lift each other up through style and confidence."),
+                        ("bi bi-leaf",        "Proudly Filipino",      "Filipino-owned, Filipino-operated, and proudly serving Filipino women with styles that celebrate who we are.")
+                        })
+            {
+                <div class="col-lg-3 col-md-6 reveal">
+                    <div class="value-card">
+                        <div class="value-icon"><i class="@v.Item1"></i></div>
+                        <div class="value-title">@v.Item2</div>
+                        <p class="value-desc">@v.Item3</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>

@@ -1,0 +1,359 @@
+﻿@{
+    ViewData["Title"] = "Track Your Order";
+}
+@section Styles {
+    <style>
+        .track-hero {
+            background: var(--cream-dark);
+            padding: 4rem 0 3rem;
+            text-align: center;
+        }
+
+        .track-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem,3.5vw,2.8rem);
+            font-weight: 400;
+        }
+
+            .track-title em {
+                font-style: italic;
+                color: var(--rose);
+            }
+
+        .track-form-wrap {
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        .track-input {
+            width: 100%;
+            padding: .9rem 1.2rem;
+            border: var(--border-rose);
+            border-radius: 50px 0 0 50px;
+            font-family: var(--font-body);
+            font-size: .9rem;
+            outline: none;
+            background: white;
+            border-right: none;
+        }
+
+            .track-input:focus {
+                border-color: var(--rose);
+                box-shadow: 0 0 0 3px rgba(201,116,127,.1);
+            }
+
+        .track-submit {
+            padding: .9rem 1.8rem;
+            background: var(--rose);
+            color: white;
+            border: none;
+            border-radius: 0 50px 50px 0;
+            font-family: var(--font-body);
+            font-size: .8rem;
+            font-weight: 500;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+            .track-submit:hover {
+                background: var(--rose-deep);
+            }
+
+        /* Tracking result */
+        .track-result {
+            max-width: 700px;
+            margin: 3rem auto;
+        }
+
+        .track-steps {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin: 2.5rem 0;
+            position: relative;
+        }
+
+            .track-steps::before {
+                content: '';
+                position: absolute;
+                top: 18px;
+                left: 10%;
+                right: 10%;
+                height: 2px;
+                background: rgba(201,116,127,.15);
+                z-index: 0;
+            }
+
+        .ts {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            z-index: 1;
+        }
+
+        .ts-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid rgba(201,116,127,.2);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .85rem;
+            color: var(--charcoal-soft);
+        }
+
+        .ts.done .ts-dot {
+            background: var(--rose);
+            border-color: var(--rose);
+            color: white;
+        }
+
+        .ts.active .ts-dot {
+            background: var(--rose-pale);
+            border-color: var(--rose);
+            color: var(--rose);
+            box-shadow: 0 0 0 4px rgba(201,116,127,.15);
+        }
+
+        .ts.cancelled .ts-dot {
+            background: #fce4e4;
+            border-color: #f09595;
+            color: #c62828;
+        }
+
+        .ts-lbl {
+            font-size: .6rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            text-align: center;
+            color: var(--charcoal-soft);
+            margin-top: .5rem;
+            max-width: 70px;
+        }
+
+        .ts.done .ts-lbl, .ts.active .ts-lbl {
+            color: var(--rose);
+        }
+
+        .ts.cancelled .ts-lbl {
+            color: #c62828;
+        }
+
+        .track-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            border: 1px solid rgba(201,116,127,.1);
+        }
+
+        .track-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: .55rem 0;
+            font-size: .88rem;
+            border-bottom: 1px solid rgba(201,116,127,.08);
+        }
+
+            .track-info-row:last-child {
+                border-bottom: none;
+            }
+
+        .tir-label {
+            color: var(--charcoal-soft);
+        }
+
+        .tir-value {
+            color: var(--charcoal);
+            font-weight: 500;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .3rem .9rem;
+            border-radius: 50px;
+            font-size: .72rem;
+            font-weight: 500;
+        }
+
+        .sp-confirmed {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .sp-processing {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .sp-shipped {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .sp-delivered {
+            background: #e8f5e9;
+            color: #1b5e20;
+        }
+
+        .sp-pending {
+            background: #f3e5f5;
+            color: #6a1b9a;
+        }
+
+        .sp-cancelled {
+            background: #fce4e4;
+            color: #c62828;
+        }
+    </style>
+}
+
+<div class="track-hero">
+    <div class="container">
+        <span class="section-eyebrow">Order Tracking</span>
+        <h1 class="track-title">Track Your <em>Order</em></h1>
+        <div class="section-divider"></div>
+        <p style="font-size:.9rem;color:var(--charcoal-soft);margin-bottom:2rem;">
+            Enter your order number to see real-time status updates.
+        </p>
+        <form asp-controller="Checkout" asp-action="Track" method="get"
+              class="track-form-wrap">
+            <div class="d-flex">
+                <input type="text" name="orderNumber" class="track-input"
+                       placeholder="e.g. LJ-2025-0001"
+                       value="@ViewBag.SearchedNumber" required />
+                <button type="submit" class="track-submit">
+                    <i class="bi bi-search"></i> Track
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div style="background:var(--cream);padding:3rem 0 5rem;">
+    <div class="container">
+
+        @if (ViewBag.NotFound == true)
+        {
+            <div style="text-align:center;padding:3rem;">
+                <div style="font-size:3rem;color:var(--rose-light);margin-bottom:1rem;">
+                    <i class="bi bi-search"></i>
+                </div>
+                <h3 style="font-family:var(--font-display);font-size:1.5rem;color:var(--charcoal);margin-bottom:.5rem;">
+                    Order not found
+                </h3>
+                <p style="color:var(--charcoal-soft);">
+                    We couldn't find an order with number
+                    <strong style="color:var(--rose);">@ViewBag.SearchedNumber</strong>.
+                    Please double-check and try again.
+                </p>
+            </div>
+        }
+
+        @if (ViewBag.Order is Order order)
+        {
+            <div class="track-result">
+                <div class="track-card mb-4">
+                    <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
+                        <div>
+                            <h3 style="font-family:var(--font-display);font-size:1.3rem;color:var(--charcoal);">
+                                Order @order.OrderNumber
+                            </h3>
+                            <div style="font-size:.78rem;color:var(--charcoal-soft);">
+                                Placed on @order.OrderDate.ToString("MMMM dd, yyyy")
+                            </div>
+                        </div>
+                        @{
+                            var pillClass = order.Status switch
+                            {
+                                OrderStatus.Confirmed => "sp-confirmed",
+                                OrderStatus.Processing => "sp-processing",
+                                OrderStatus.Shipped => "sp-shipped",
+                                OrderStatus.Delivered => "sp-delivered",
+                                OrderStatus.Cancelled => "sp-cancelled",
+                                _ => "sp-pending"
+                            };
+                        }
+                        <span class="status-pill @pillClass">
+                            <i class="@order.StatusIcon"></i> @order.Status
+                        </span>
+                    </div>
+
+                    <!-- Progress steps -->
+                    @if (order.Status != OrderStatus.Cancelled)
+                    {
+                        var statuses = new[] {
+                                ("Confirmed",  "bi bi-check-circle",  1),
+                                ("Processing", "bi bi-gear",          2),
+                                ("Shipped",    "bi bi-truck",         3),
+                                ("Delivered",  "bi bi-bag-check",     4)
+                                };
+                        <div class="track-steps">
+                            @foreach (var (lbl, icon, threshold) in statuses)
+                            {
+                                var stepClass =
+                                order.TrackingStep > threshold ? "done" :
+                                order.TrackingStep == threshold ? "active" : "";
+                                <div class="ts @stepClass">
+                                    <div class="ts-dot"><i class="@icon"></i></div>
+                                    <div class="ts-lbl">@lbl</div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="text-align:center;padding:1.5rem;background:#fce4e4;border-radius:var(--radius-md);margin:1rem 0;">
+                            <i class="bi bi-x-circle-fill" style="color:#c62828;font-size:1.4rem;"></i>
+                            <p style="color:#c62828;font-size:.88rem;margin:.5rem 0 0;">This order has been cancelled.</p>
+                        </div>
+                    }
+
+                    <div class="track-info-row"><span class="tir-label">Customer</span><span class="tir-value">@order.CustomerName</span></div>
+                    <div class="track-info-row"><span class="tir-label">Email</span><span class="tir-value">@order.CustomerEmail</span></div>
+                    <div class="track-info-row"><span class="tir-label">Ship To</span><span class="tir-value">@order.ShippingAddress</span></div>
+                    <div class="track-info-row">
+                        <span class="tir-label">Total</span>
+                        <span class="tir-value" style="color:var(--rose-deep);font-family:var(--font-display);font-size:1.05rem;">
+                            ₱@order.TotalAmount.ToString("N0")
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Items -->
+                <div class="track-card">
+                    <h3 style="font-family:var(--font-display);font-size:1.1rem;margin-bottom:1rem;">Items</h3>
+                    @foreach (var item in order.OrderItems)
+                    {
+                        <div style="display:flex;align-items:center;gap:.9rem;padding:.7rem 0;border-bottom:1px solid rgba(201,116,127,.08);">
+                            <img src="@item.Product?.ImageUrl"
+                                 style="width:54px;height:68px;object-fit:cover;border-radius:var(--radius-sm);flex-shrink:0;" />
+                            <div style="flex:1;">
+                                <div style="font-family:var(--font-display);font-size:.95rem;color:var(--charcoal);">@item.Product?.Name</div>
+                                <div style="font-size:.72rem;color:var(--charcoal-soft);">
+                                    Size: @item.SelectedSize · Qty: @item.Quantity
+                                </div>
+                            </div>
+                            <div style="font-family:var(--font-display);color:var(--rose-deep);flex-shrink:0;">
+                                ₱@item.SubTotal.ToString("N0")
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="text-center mt-4">
+                    <a asp-controller="Product" asp-action="Index" class="btn-outline-rose">
+                        Continue Shopping <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>

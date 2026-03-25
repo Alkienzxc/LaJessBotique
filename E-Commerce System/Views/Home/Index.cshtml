@@ -1,0 +1,1103 @@
+﻿@{
+    ViewData["Title"] = "Home";
+    var categories = ViewBag.Categories as List<Category> ?? new();
+    var featuredProducts = ViewBag.FeaturedProducts as List<Product> ?? new();
+    var newArrivals = ViewBag.NewArrivals as List<Product> ?? new();
+    var reviews = ViewBag.Reviews as List<Review> ?? new();
+    var totalProducts = (int)(ViewBag.TotalProducts ?? 0);
+}
+
+@section Styles {
+    <style>
+        .ann-bar {
+            background: var(--charcoal);
+            color: rgba(255,255,255,.8);
+            text-align: center;
+            padding: .55rem 1rem;
+            font-size: .68rem;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            font-family: var(--font-body);
+        }
+
+            .ann-bar span {
+                color: var(--rose-light);
+                margin: 0 .6rem;
+            }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: calc(100vh - 74px - 34px);
+            background: var(--cream);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hero-left {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 5rem 3.5rem 5rem 5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-eyebrow-row {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .hero-eyebrow-line {
+            width: 34px;
+            height: 1px;
+            background: var(--rose);
+        }
+
+        .hero-eyebrow-text {
+            font-size: .65rem;
+            letter-spacing: .3em;
+            text-transform: uppercase;
+            color: var(--rose);
+            font-family: var(--font-body);
+            font-weight: 500;
+        }
+
+        .hero-headline {
+            font-family: var(--font-display);
+            font-size: clamp(2.8rem,5vw,5rem);
+            font-weight: 800;
+            line-height: 1.03;
+            color: var(--charcoal);
+            margin-bottom: 1.6rem;
+        }
+
+            .hero-headline em {
+                font-style: italic;
+                color: var(--rose);
+                display: block;
+            }
+
+        .hero-sub {
+            font-size: .95rem;
+            font-weight: 300;
+            color: var(--charcoal-mid);
+            max-width: 370px;
+            line-height: 1.85;
+            margin-bottom: 2.4rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.1rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 2.5rem;
+            margin-top: 3.5rem;
+            padding-top: 2.5rem;
+            border-top: 1px solid rgba(201,116,127,.15);
+        }
+
+        .stat-num {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--charcoal);
+            line-height: 1;
+        }
+
+            .stat-num span {
+                color: var(--rose);
+            }
+
+        .stat-lbl {
+            font-size: .62rem;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--charcoal-soft);
+            margin-top: 4px;
+        }
+
+        .hero-right {
+            position: relative;
+            overflow: hidden;
+        }
+
+            .hero-right img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                object-position: center top;
+            }
+
+        .hero-right-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right,var(--cream) 0%,transparent 22%);
+        }
+
+        .float-card {
+            position: absolute;
+            background: rgba(255,255,255,.93);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(201,116,127,.18);
+            border-radius: 14px;
+            padding: .9rem 1.2rem;
+            box-shadow: 0 8px 32px rgba(169,100,100,.14);
+        }
+
+            .float-card.fc-sale {
+                bottom: 14%;
+                left: 55px;
+            }
+
+            .float-card.fc-new {
+                top: 15%;
+                right: 20px;
+            }
+
+        .fc-lbl {
+            font-size: .58rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--charcoal-soft);
+            font-family: var(--font-body);
+        }
+
+        .fc-val {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--charcoal);
+            line-height: 1.15;
+            margin-top: 2px;
+        }
+
+            .fc-val span {
+                color: var(--rose);
+            }
+
+        .scroll-hint {
+            position: absolute;
+            bottom: 2rem;
+            left: 5rem;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            font-size: .62rem;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+            color: var(--charcoal-soft);
+        }
+
+        .scroll-hint-line {
+            width: 28px;
+            height: 1px;
+            background: var(--charcoal-soft);
+            position: relative;
+            overflow: hidden;
+        }
+
+            .scroll-hint-line::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: var(--rose);
+                transform: translateX(-100%);
+                animation: scrollPulse 1.8s ease infinite;
+            }
+
+        @@keyframes scrollPulse {
+            0% {
+                transform: translateX(-100%)
+            }
+
+            100% {
+                transform: translateX(100%)
+            }
+        }
+
+        /* ═══ CATEGORIES ═══ */
+        .cats-section {
+            background: var(--cream-dark);
+            padding: 5.5rem 0;
+        }
+
+        .cat-card {
+            position: relative;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            display: block;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+            .cat-card img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform .65s var(--ease);
+            }
+
+            .cat-card:hover img {
+                transform: scale(1.08);
+            }
+
+        .cat-card-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top,rgba(44,36,36,.72) 0%,transparent 55%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1.5rem;
+            transition: background .35s;
+        }
+
+        .cat-card:hover .cat-card-overlay {
+            background: linear-gradient(to top,rgba(44,36,36,.85) 0%,transparent 55%);
+        }
+
+        .cat-name {
+            font-family: var(--font-display);
+            font-size: 1.35rem;
+            font-weight: 400;
+            color: white;
+            line-height: 1.1;
+        }
+
+        .cat-count {
+            font-size: .62rem;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,.6);
+            margin-top: 3px;
+        }
+
+        .cat-arrow {
+            position: absolute;
+            top: 1.1rem;
+            right: 1.1rem;
+            width: 34px;
+            height: 34px;
+            background: rgba(255,255,255,.15);
+            backdrop-filter: blur(8px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transform: scale(0);
+            transition: transform .3s var(--ease),background .3s;
+        }
+
+        .cat-card:hover .cat-arrow {
+            transform: scale(1);
+            background: var(--rose);
+        }
+
+        .cat-lg {
+            aspect-ratio: 3/4;
+        }
+
+        .cat-sm {
+            aspect-ratio: 4/5;
+        }
+
+        /* ═══ FEATURED PRODUCTS ═══ */
+        .featured-section {
+            padding: 6rem 0;
+            background: var(--cream);
+        }
+
+        /* ═══ NEW ARRIVALS STRIP ═══ */
+        .new-arrivals-section {
+            padding: 5rem 0;
+            background: var(--charcoal);
+            position: relative;
+            overflow: hidden;
+        }
+
+            .new-arrivals-section::before {
+                content: 'NEW ARRIVALS NEW ARRIVALS NEW ARRIVALS NEW ARRIVALS NEW ARRIVALS ';
+                position: absolute;
+                top: 50%;
+                left: 0;
+                transform: translateY(-50%);
+                font-family: var(--font-display);
+                font-size: 7rem;
+                font-weight: 300;
+                color: rgba(255,255,255,.03);
+                white-space: nowrap;
+                letter-spacing: .2em;
+                pointer-events: none;
+                line-height: 1;
+            }
+
+        .na-card {
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            position: relative;
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.08);
+            transition: var(--transition);
+        }
+
+            .na-card:hover {
+                transform: translateY(-5px);
+                background: rgba(255,255,255,.08);
+                border-color: rgba(201,116,127,.4);
+            }
+
+        .na-card-img {
+            aspect-ratio: 3/4;
+            overflow: hidden;
+        }
+
+            .na-card-img img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform .6s var(--ease);
+            }
+
+        .na-card:hover .na-card-img img {
+            transform: scale(1.06);
+        }
+
+        .na-card-body {
+            padding: 1.1rem 1.2rem 1.3rem;
+        }
+
+        .na-product-name {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            color: rgba(255,255,255,.9);
+            margin-bottom: .3rem;
+        }
+
+        .na-product-price {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--rose-light);
+            font-weight: 500;
+        }
+
+        /* ═══ CTA BANNER ═══ */
+        .cta-section {
+            padding: 6rem 0;
+            background: var(--rose-pale);
+            position: relative;
+            overflow: hidden;
+        }
+
+            .cta-section::after {
+                content: '';
+                position: absolute;
+                top: -100px;
+                right: -100px;
+                width: 500px;
+                height: 500px;
+                background: radial-gradient(circle,rgba(201,116,127,.12) 0%,transparent 70%);
+                pointer-events: none;
+            }
+
+        .cta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            background: var(--rose-light);
+            color: var(--rose-deep);
+            padding: .4rem 1rem;
+            border-radius: 50px;
+            font-size: .65rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem,4vw,3.5rem);
+            font-weight: 400;
+            color: var(--charcoal);
+            line-height: 1.1;
+            margin-bottom: 1.2rem;
+        }
+
+            .cta-title em {
+                font-style: italic;
+                color: var(--rose);
+            }
+
+        .cta-sub {
+            font-size: .95rem;
+            color: var(--charcoal-mid);
+            max-width: 420px;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .cta-img-wrap {
+            position: relative;
+        }
+
+            .cta-img-wrap img {
+                width: 100%;
+                border-radius: var(--radius-xl);
+                object-fit: cover;
+                height: 480px;
+                box-shadow: 0 24px 60px rgba(169,100,100,.18);
+            }
+
+        .cta-img-tag {
+            position: absolute;
+            bottom: -18px;
+            left: 30px;
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 1rem 1.4rem;
+            box-shadow: var(--shadow-card);
+            display: flex;
+            align-items: center;
+            gap: .9rem;
+        }
+
+        .cta-img-tag-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--rose-pale);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--rose);
+            font-size: 1.1rem;
+        }
+
+        .cta-img-tag-text {
+            font-size: .72rem;
+            color: var(--charcoal-soft);
+            line-height: 1.4;
+        }
+
+        .cta-img-tag-value {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--charcoal);
+            font-weight: 500;
+        }
+
+        /* ═══ TESTIMONIALS ═══ */
+        .reviews-section {
+            padding: 6rem 0;
+            background: var(--cream-dark);
+        }
+
+        .review-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            border: 1px solid rgba(201,116,127,.1);
+            transition: var(--transition);
+            height: 100%;
+        }
+
+            .review-card:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-card);
+            }
+
+        .review-stars {
+            color: var(--gold);
+            font-size: .9rem;
+            letter-spacing: 2px;
+            margin-bottom: .9rem;
+        }
+
+        .review-comment {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--charcoal);
+            line-height: 1.65;
+            margin-bottom: 1.3rem;
+        }
+
+        .review-meta {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+        }
+
+        .review-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--rose-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--rose-deep);
+            font-weight: 500;
+        }
+
+        .review-name {
+            font-size: .82rem;
+            font-weight: 500;
+            color: var(--charcoal);
+        }
+
+        .review-product {
+            font-size: .7rem;
+            color: var(--charcoal-soft);
+        }
+
+        /* ═══ ABOUT TEASER ═══ */
+        .about-teaser {
+            padding: 6rem 0;
+            background: var(--cream);
+        }
+
+        .about-img-stack {
+            position: relative;
+            height: 520px;
+        }
+
+        .about-img-main {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 78%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: var(--radius-xl);
+        }
+
+        .about-img-accent {
+            position: absolute;
+            bottom: -24px;
+            right: 0;
+            width: 50%;
+            height: 55%;
+            object-fit: cover;
+            border-radius: var(--radius-lg);
+            border: 5px solid var(--cream);
+            box-shadow: var(--shadow-card);
+        }
+
+        .about-tag {
+            position: absolute;
+            top: 24px;
+            right: 0;
+            background: white;
+            border-radius: var(--radius-md);
+            padding: .9rem 1.2rem;
+            box-shadow: var(--shadow-card);
+            text-align: center;
+        }
+
+        .about-tag-num {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 500;
+            color: var(--rose);
+            line-height: 1;
+        }
+
+        .about-tag-lbl {
+            font-size: .6rem;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--charcoal-soft);
+        }
+
+        .feature-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 1.8rem 0 2.2rem;
+        }
+
+            .feature-list li {
+                display: flex;
+                align-items: flex-start;
+                gap: .8rem;
+                font-size: .9rem;
+                color: var(--charcoal-mid);
+            }
+
+                .feature-list li i {
+                    color: var(--rose);
+                    margin-top: 3px;
+                    font-size: 1rem;
+                    flex-shrink: 0;
+                }
+
+        /* ═══ RESPONSIVE ═══ */
+        @@media(max-width:991px) {
+            .hero {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+
+            .hero-left {
+                padding: 3.5rem 1.5rem 3rem;
+                order: 2;
+            }
+
+            .hero-right {
+                height: 60vw;
+                min-height: 280px;
+                order: 1;
+            }
+
+            .hero-right-overlay {
+                background: linear-gradient(to bottom,transparent 60%,var(--cream));
+            }
+
+            .float-card.fc-sale {
+                left: 1rem;
+                bottom: 1rem;
+            }
+
+            .float-card.fc-new {
+                top: 1rem;
+                right: 1rem;
+            }
+
+            .scroll-hint {
+                display: none;
+            }
+
+            .hero-stats {
+                gap: 1.5rem;
+            }
+
+            .about-img-stack {
+                height: 320px;
+            }
+
+            .about-img-accent {
+                display: none;
+            }
+
+            .about-tag {
+                display: none;
+            }
+        }
+
+        @@media(max-width:576px) {
+            .hero-left {
+                padding: 2.5rem 1.2rem;
+            }
+
+            .hero-stats {
+                flex-wrap: wrap;
+                gap: 1.2rem;
+            }
+
+            .cta-img-wrap img {
+                height: 300px;
+            }
+        }
+    </style>
+}
+
+<!-- ═══ ANNOUNCEMENT BAR ═══ -->
+<div class="ann-bar">
+    Free shipping on orders over ₱2,000
+    <span>✦</span>
+    New arrivals every week
+    <span>✦</span>
+    Follow us @@lajess.boutique
+</div>
+
+<!-- ══════════════════════════════════════════
+     HERO
+══════════════════════════════════════════ -->
+<section class="hero">
+    <div class="hero-left">
+        <div class="hero-eyebrow-row fade-up fade-up-1">
+            <div class="hero-eyebrow-line"></div>
+            <span class="hero-eyebrow-text">New Season 2025 Collection</span>
+        </div>
+        <h1 class="hero-headline fade-up fade-up-2">
+            Dress for<br>the Woman<br>
+            <em>You're Becoming</em>
+        </h1>
+        <p class="hero-sub fade-up fade-up-3">
+            Handpicked clothing and accessories for the modern Filipina.
+            Quality, elegance, and style — all in one place.
+        </p>
+        <div class="hero-actions fade-up fade-up-4">
+            <a asp-controller="Product" asp-action="Index" class="btn-rose">
+                Shop the Collection <i class="bi bi-arrow-right"></i>
+            </a>
+            <a asp-controller="About" asp-action="Index" class="btn-outline-rose">
+                Our Story
+            </a>
+        </div>
+        <div class="hero-stats fade-up fade-up-5">
+            <div>
+                <div class="stat-num">@totalProducts<span>+</span></div>
+                <div class="stat-lbl">Styles</div>
+            </div>
+            <div>
+                <div class="stat-num">1<span>k+</span></div>
+                <div class="stat-lbl">Happy Clients</div>
+            </div>
+            <div>
+                <div class="stat-num">100<span>%</span></div>
+                <div class="stat-lbl">Quality Assured</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero-right">
+        <img src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=900&q=85"
+             alt="LaJess Boutique" />
+        <div class="hero-right-overlay"></div>
+        <div class="float-card fc-sale fade-up fade-up-3">
+            <div class="fc-lbl">Season Special</div>
+            <div class="fc-val">Up to <span>40%</span> Off</div>
+        </div>
+        <div class="float-card fc-new fade-up fade-up-4">
+            <div class="fc-lbl">Just Arrived</div>
+            <div class="fc-val"><span>@newArrivals.Count</span> New Styles</div>
+        </div>
+    </div>
+
+    <div class="scroll-hint">
+        <div class="scroll-hint-line"></div>
+        <span>Scroll to explore</span>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     CATEGORIES
+══════════════════════════════════════════ -->
+<section class="cats-section">
+    <div class="container">
+        <div class="text-center mb-5 reveal">
+            <span class="section-eyebrow">Browse by Style</span>
+            <h2 class="section-title">Shop Our <em>Categories</em></h2>
+            <div class="section-divider"></div>
+        </div>
+        @if (categories.Any())
+        {
+            <div class="row g-3">
+                <div class="col-lg-5 col-md-6 reveal">
+                    @{
+                        var c0 = categories[0];
+                    }
+                    <a class="cat-card cat-lg"
+                       asp-controller="Product" asp-action="Index"
+                       asp-route-categoryId="@c0.Id">
+                        <img src="@c0.ImageUrl" alt="@c0.Name" loading="lazy" />
+                        <div class="cat-card-overlay">
+                            <div class="cat-name">@c0.Name</div>
+                            <div class="cat-count">@c0.Products.Count styles</div>
+                        </div>
+                        <div class="cat-arrow"><i class="bi bi-arrow-right"></i></div>
+                    </a>
+                </div>
+                <div class="col-lg-7 col-md-6">
+                    <div class="row g-3">
+                        @foreach (var cat in categories.Skip(1).Take(4))
+                        {
+                            <div class="col-6 reveal">
+                                <a class="cat-card cat-sm"
+                                   asp-controller="Product" asp-action="Index"
+                                   asp-route-categoryId="@cat.Id">
+                                    <img src="@cat.ImageUrl" alt="@cat.Name" loading="lazy" />
+                                    <div class="cat-card-overlay">
+                                        <div class="cat-name">@cat.Name</div>
+                                        <div class="cat-count">@cat.Products.Count styles</div>
+                                    </div>
+                                    <div class="cat-arrow"><i class="bi bi-arrow-right"></i></div>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     FEATURED PRODUCTS
+══════════════════════════════════════════ -->
+<section class="featured-section">
+    <div class="container">
+        <div class="d-flex align-items-end justify-content-between mb-5 flex-wrap gap-3 reveal">
+            <div>
+                <span class="section-eyebrow">Hand-Curated</span>
+                <h2 class="section-title">Featured <em>Pieces</em></h2>
+                <div class="section-divider left"></div>
+            </div>
+            <a asp-controller="Product" asp-action="Index" class="btn-outline-rose">
+                View All <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var p in featuredProducts)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6 reveal">
+                    <div class="product-card">
+                        <div class="product-card-img">
+                            <img src="@p.ImageUrl" alt="@p.Name" loading="lazy" />
+                            @if (p.IsNewArrival)
+                            {
+                                <span class="product-badge badge-new">New</span>
+                            }
+                            else if (p.IsFeatured)
+                            {
+                                <span class="product-badge badge-featured">Featured</span>
+                            }
+                            <div class="product-card-overlay">
+                                <a asp-controller="Product" asp-action="Detail"
+                                   asp-route-id="@p.Id" class="overlay-btn">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                <form asp-controller="Cart" asp-action="Add" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="productId" value="@p.Id" />
+                                    <input type="hidden" name="quantity" value="1" />
+                                    <input type="hidden" name="selectedSize" value="@(p.Sizes.Split(',').FirstOrDefault() ?? "")" />
+                                    <button type="submit" class="overlay-btn icon-only"
+                                            title="Add to basket">
+                                        <i class="bi bi-bag-plus"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="product-card-body">
+                            <div class="product-cat-tag">@p.Category?.Name</div>
+                            <div class="product-name">
+                                <a asp-controller="Product" asp-action="Detail"
+                                   asp-route-id="@p.Id"
+                                   style="text-decoration:none;color:inherit;">@p.Name</a>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mt-1">
+                                <div class="product-price">
+                                    <span class="currency">₱</span>@p.Price.ToString("N0")
+                                </div>
+                                @if (p.Reviews.Any())
+                                {
+                                    <div style="font-size:.7rem;color:var(--gold);">
+                                        <i class="bi bi-star-fill"></i>
+                                        <span style="color:var(--charcoal-soft);font-family:var(--font-body);">
+                                            @p.AverageRating (@p.Reviews.Count)
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     NEW ARRIVALS DARK STRIP
+══════════════════════════════════════════ -->
+@if (newArrivals.Any())
+{
+    <section class="new-arrivals-section">
+        <div class="container">
+            <div class="d-flex align-items-end justify-content-between mb-5 flex-wrap gap-3 reveal">
+                <div>
+                    <span class="section-eyebrow" style="color:var(--rose-light);">Fresh In</span>
+                    <h2 class="section-title" style="color:white;">New <em style="color:var(--rose-light);">Arrivals</em></h2>
+                    <div class="section-divider left"></div>
+                </div>
+                <a asp-controller="Product" asp-action="Index"
+                   asp-route-sort="newest" class="btn-ghost">
+                    See All New <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="row g-4">
+                @foreach (var p in newArrivals)
+                {
+                    <div class="col-lg-3 col-md-6 col-sm-6 reveal">
+                        <div class="na-card">
+                            <div class="na-card-img">
+                                <a asp-controller="Product" asp-action="Detail" asp-route-id="@p.Id">
+                                    <img src="@p.ImageUrl" alt="@p.Name" loading="lazy" />
+                                </a>
+                            </div>
+                            <div class="na-card-body">
+                                <div class="product-cat-tag" style="color:var(--rose-light);">@p.Category?.Name</div>
+                                <div class="na-product-name">@p.Name</div>
+                                <div class="na-product-price">₱@p.Price.ToString("N0")</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<!-- ══════════════════════════════════════════
+     CTA — CALL TO ACTION
+══════════════════════════════════════════ -->
+<section class="cta-section">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 reveal">
+                <div class="cta-badge">
+                    <i class="bi bi-stars"></i> Exclusive Offer
+                </div>
+                <h2 class="cta-title">
+                    Style That Speaks<br>
+                    <em>Without Words</em>
+                </h2>
+                <p class="cta-sub">
+                    Get free shipping on your first order over ₱2,000.
+                    Discover our curated collection of premium clothing and
+                    accessories — made for the modern Filipina who knows what she wants.
+                </p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a asp-controller="Product" asp-action="Index" class="btn-rose">
+                        <i class="bi bi-bag-heart"></i> Shop Now
+                    </a>
+                    <a asp-controller="Checkout" asp-action="Track" class="btn-outline-rose">
+                        <i class="bi bi-truck"></i> Track My Order
+                    </a>
+                </div>
+                <div class="d-flex gap-4 mt-4" style="flex-wrap:wrap;">
+                    <div style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--charcoal-mid);">
+                        <i class="bi bi-shield-check" style="color:var(--rose);"></i> 100% Authentic
+                    </div>
+                    <div style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--charcoal-mid);">
+                        <i class="bi bi-arrow-return-left" style="color:var(--rose);"></i> Easy Returns
+                    </div>
+                    <div style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--charcoal-mid);">
+                        <i class="bi bi-truck" style="color:var(--rose);"></i> Fast Delivery
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 reveal">
+                <div class="cta-img-wrap">
+                    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&q=85"
+                         alt="LaJess Collection" />
+                    <div class="cta-img-tag">
+                        <div class="cta-img-tag-icon">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <div>
+                            <div class="cta-img-tag-text">Free shipping</div>
+                            <div class="cta-img-tag-value">On orders ₱2,000+</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     TESTIMONIALS / REVIEWS
+══════════════════════════════════════════ -->
+@if (reviews.Any())
+{
+    <section class="reviews-section">
+        <div class="container">
+            <div class="text-center mb-5 reveal">
+                <span class="section-eyebrow">What Our Clients Say</span>
+                <h2 class="section-title">Loved by <em>Real Women</em></h2>
+                <div class="section-divider"></div>
+            </div>
+            <div class="row g-4">
+                @foreach (var r in reviews)
+                {
+                    <div class="col-lg-3 col-md-6 reveal">
+                        <div class="review-card">
+                            <div class="review-stars">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <i class="bi bi-star-fill @(i <= r.Rating ? "star-filled" : "star-empty")"></i>
+                                }
+                            </div>
+                            <p class="review-comment">"@r.Comment"</p>
+                            <div class="review-meta">
+                                <div class="review-avatar">
+                                    @r.CustomerName.Substring(0, 1).ToUpper()
+                                </div>
+                                <div>
+                                    <div class="review-name">@r.CustomerName</div>
+                                    <div class="review-product">@r.Product?.Name</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<!-- ══════════════════════════════════════════
+     ABOUT TEASER
+══════════════════════════════════════════ -->
+<section class="about-teaser">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 reveal">
+                <div class="about-img-stack">
+                    <img class="about-img-main"
+                         src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=700&q=85"
+                         alt="About LaJess" />
+                    <img class="about-img-accent"
+                         src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=80"
+                         alt="Fashion detail" />
+                    <div class="about-tag">
+                        <div class="about-tag-num">2+</div>
+                        <div class="about-tag-lbl">Years in Business</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 reveal">
+                <span class="section-eyebrow">Our Story</span>
+                <h2 class="section-title">Fashion Born from<br><em>Friendship</em></h2>
+                <div class="section-divider left"></div>
+                <p style="font-size:.95rem;color:var(--charcoal-mid);line-height:1.85;margin-bottom:1rem;">
+                    LaJess Boutique was born from the shared dream of two best friends —
+                    Lalaine and Jessica — who believed every Filipina deserves to feel
+                    beautiful every single day.
+                </p>
+                <p style="font-size:.95rem;color:var(--charcoal-mid);line-height:1.85;">
+                    What started as a small passion project has grown into a beloved
+                    boutique trusted by thousands of women across the Philippines.
+                </p>
+                <ul class="feature-list">
+                    <li><i class="bi bi-check-circle-fill"></i> Personally curated by our founders every season</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Quality-checked before every item goes live</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Proudly Filipino-owned and operated</li>
+                </ul>
+                <a asp-controller="About" asp-action="Index" class="btn-rose">
+                    Meet Lalaine &amp; Jessica <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
