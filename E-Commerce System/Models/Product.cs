@@ -17,6 +17,7 @@ namespace E_Commerce_System.Models
         public string Description { get; set; } = string.Empty;
 
         [Required]
+        [Column(TypeName = "decimal(18,2)")]
         [Range(0.01, 999999.99, ErrorMessage = "Price must be greater than 0.")]
         public decimal Price { get; set; }
 

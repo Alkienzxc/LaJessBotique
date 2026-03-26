@@ -34,6 +34,7 @@ using E_Commerce_System.Models;
                       .HasMaxLength(1000);
 
                 entity.Property(p => p.Price)
+                      .HasColumnType("decimal(18,2)")
                       .IsRequired();
 
                 entity.Property(p => p.Sizes)
@@ -122,6 +123,7 @@ using E_Commerce_System.Models;
                       .HasMaxLength(500);
 
                 entity.Property(o => o.TotalAmount)
+                      .HasColumnType("decimal(18,2)")
                       .IsRequired();
 
                 entity.Property(o => o.Notes)
@@ -136,6 +138,7 @@ using E_Commerce_System.Models;
                 entity.HasKey(oi => oi.Id);
 
                 entity.Property(oi => oi.UnitPrice)
+                      .HasColumnType("decimal(18,2)")
                       .IsRequired();
 
                 entity.Property(oi => oi.SelectedSize)

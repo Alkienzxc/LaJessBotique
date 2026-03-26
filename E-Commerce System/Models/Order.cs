@@ -40,6 +40,7 @@ namespace E_Commerce_System.Models
         public string ShippingAddress { get; set; } = string.Empty;
 
         [Required]
+        [Column(TypeName = "decimal(18,2)")]
         [Display(Name = "Total Amount")]
         public decimal TotalAmount { get; set; }
 
@@ -103,6 +104,7 @@ namespace E_Commerce_System.Models
         public int Quantity { get; set; }
 
         [Required]
+        [Column(TypeName = "decimal(18,2)")]
         [Display(Name = "Unit Price")]
         public decimal UnitPrice { get; set; }
 
